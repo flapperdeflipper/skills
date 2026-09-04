@@ -1,0 +1,57 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Claude Code SKILL.md front matter",
+  "description": "Mirrors https://code.claude.com/docs/en/skills. Every field is optional to Claude Code itself; this schema additionally requires description, because a skill without one cannot be selected reliably.",
+  "type": "object",
+  "required": ["description"],
+  "properties": {
+    "name": {
+      "type": "string",
+      "pattern": "^[a-z0-9]+(?:-[a-z0-9]+)*$",
+      "description": "Display name. Must match the containing directory, which is what sets the /command name."
+    },
+    "description": {
+      "type": "string",
+      "minLength": 20,
+      "maxLength": 1536,
+      "description": "What the skill does and when to use it. Resident in every session. Combined with when_to_use and truncated at 1536 characters in the listing."
+    },
+    "when_to_use": {
+      "type": "string",
+      "description": "Extra trigger phrases. Appended to description and counts toward the same 1536 character cap."
+    },
+    "argument-hint": {
+      "type": "string",
+      "description": "Autocomplete hint, e.g. \"[chart-dir]\"."
+    },
+    "arguments": {
+      "oneOf": [{ "type": "string" }, { "type": "array", "items": { "type": "string" } }]
+    },
+    "allowed-tools": {
+      "oneOf": [{ "type": "string" }, { "type": "array", "items": { "type": "string" } }],
+      "description": "Tools pre-approved for the invoking turn. Real Claude tool names, e.g. Read, Grep, Bash."
+    },
+    "disallowed-tools": {
+      "oneOf": [{ "type": "string" }, { "type": "array", "items": { "type": "string" } }]
+    },
+    "disable-model-invocation": {
+      "type": "boolean",
+      "description": "true keeps the skill out of automatic loading; invoke it with /name only."
+    },
+    "user-invocable": { "type": "boolean" },
+    "model": { "type": "string" },
+    "effort": { "type": "string", "enum": ["low", "medium", "high", "xhigh", "max"] },
+    "context": { "type": "string", "enum": ["fork"] },
+    "agent": { "type": "string" },
+    "background": { "type": "boolean" },
+    "paths": {
+      "oneOf": [{ "type": "string" }, { "type": "array", "items": { "type": "string" } }],
+      "description": "Globs that limit automatic activation to matching files."
+    },
+    "shell": { "type": "string", "enum": ["bash", "powershell"] },
+    "hooks": { "type": "object" },
+    "license": { "type": "string" },
+    "metadata": { "type": "object" }
+  },
+  "additionalProperties": false
+}

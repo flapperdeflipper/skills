@@ -122,5 +122,9 @@ for name in $(printf '%s' "$existing" | jq -r '.[].name'); do
 done
 
 echo "---"
-echo "new: $add  updated: $upd  unchanged: $unchanged  skipped: $skipped  orphans: $orphan$([ "$PRUNE" = 0 ] && [ "$orphan" -gt 0 ] && echo ' (use --prune to remove)' || true)"
+prune_hint=""
+if [ "$PRUNE" = 0 ] && [ "$orphan" -gt 0 ]; then
+  prune_hint=" (use --prune to remove)"
+fi
+echo "new: $add  updated: $upd  unchanged: $unchanged  skipped: $skipped  orphans: $orphan$prune_hint"
 [ "$APPLY" = 0 ] && echo "dry run — pass --apply to execute"

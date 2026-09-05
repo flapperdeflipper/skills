@@ -1,6 +1,6 @@
 ---
 name: home-assistant-ops
-description: "Operate THIS Home Assistant Supervised install and its opencode/litellm stack: the Supervisor REST API v2 options format, where the opencode add-on persists its config, the litellm model provider wiring, and how skills publish to the skills hub. Use for supervisor API calls, changing opencode add-on options, or publishing skills. Not for HA YAML, dashboards, troubleshooting, Zigbee/ESPHome workflows or add-on code — other skills cover those."
+description: "Operate THIS Supervised install and its opencode/litellm stack: Supervisor REST API v2 options, opencode add-on config, litellm wiring, skills hub publishing. Not for HA YAML, dashboards, troubleshooting, or Zigbee/ESPHome - other skills cover those."
 license: MIT
 ---
 

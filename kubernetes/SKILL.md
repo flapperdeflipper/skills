@@ -1,6 +1,6 @@
 ---
 name: kubernetes
-description: "Prevent Kubernetes hallucinations by diagnosing and fixing failure modes: insecure workload defaults, resource starvation, network exposure, privilege sprawl, fragile rollouts, and API drift. Use when generating, reviewing, refactoring, or migrating manifests, Helm charts, Kustomize overlays, cluster policies, and platform-specific Kubernetes work for EKS, GKE, AKS, OpenShift, GitOps controllers, or observability stacks."
+description: "Diagnoses and fixes Kubernetes failure modes: insecure defaults, resource starvation, network exposure, privilege sprawl, fragile rollouts, API drift. Use when generating or reviewing manifests, Helm, Kustomize, or EKS/GKE/AKS/OpenShift work."
 ---
 
 # Kubernetes: Failure-Mode Workflow

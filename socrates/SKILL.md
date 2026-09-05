@@ -1,6 +1,6 @@
 ---
 name: socrates
-description: "Use when the user says 'socratic' or 'Socrates', or asks to be taught something without being told the answer. Teaches via Socratic questioning: guide the user to discover answers themselves through targeted questions, never giving the answer directly. Works against any readable material: codebases, manifests, configs, markdown, PDFs, docs."
+description: "Teaches via Socratic questioning - guides you to discover answers through targeted questions, never tells. Use when the user says 'socratic'/'Socrates' or asks to be taught from any readable material."
 ---
 
 # Socratic Method Teaching

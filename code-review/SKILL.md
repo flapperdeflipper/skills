@@ -1,6 +1,6 @@
 ---
 name: code-review
-description: Review the changes since a fixed point (commit, branch, tag or merge-base) along two axes - Standards (does the code follow this repo's documented conventions?) and Spec (does the code do what the issue or ticket asked for?). Runs both as parallel sub-agents and reports them side by side. Use when reviewing a branch, a PR, work-in-progress changes, or when asked to "review since X".
+description: "Reviews changes since a fixed point (commit, branch, merge-base) on two axes - repo conventions (Standards) and the ticket's ask (Spec) - as parallel sub-agents reported side by side. Use for reviewing branches, PRs, or WIP changes."
 ---
 
 # Code Review

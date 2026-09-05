@@ -1,6 +1,6 @@
 ---
 name: mcp-developer
-description: Use when building, debugging, or extending MCP servers or clients that connect AI systems with external tools and data sources. Invoke to implement tool handlers, configure resource providers, set up stdio/HTTP/SSE transport layers, validate schemas with Zod or Pydantic, debug protocol compliance issues, or scaffold complete MCP server/client projects using TypeScript or Python SDKs.
+description: "Builds and debugs MCP servers and clients: tool handlers, resources, stdio/HTTP/SSE transports, Zod/Pydantic schemas, TypeScript/Python SDKs. Use when creating or extending MCP tooling."
 license: MIT
 metadata:
   author: https://github.com/Jeffallan

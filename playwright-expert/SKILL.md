@@ -1,6 +1,6 @@
 ---
 name: playwright-expert
-description: "Use when writing E2E tests with Playwright, setting up test infrastructure, or debugging flaky browser tests. Invoke to write test scripts, create page objects, configure test fixtures, set up reporters, add CI integration, implement API mocking, or perform visual regression testing. Trigger terms: Playwright, E2E test, end-to-end, browser testing, automation, UI testing, visual testing, Page Object Model, test flakiness."
+description: "Writes and debugs Playwright E2E tests: page objects, fixtures, reporters, CI integration, API mocking, visual regression. Use for browser test automation or flaky-test debugging."
 license: MIT
 metadata:
   author: https://github.com/Jeffallan

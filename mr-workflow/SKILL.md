@@ -1,6 +1,6 @@
 ---
 name: mr-workflow
-description: Create merge requests (GitHub PRs) on the flapperdeflipper repos — addons, skills, home-assistant-config — using the github_token secret via hasecret env injection. Covers branch naming, scoped staging, token-safe push with a one-shot credential helper, gh pr create, and never-commit-secrets rules. Use when the user asks for an MR/PR on any of these repos.
+description: "Create merge requests (GitHub PRs) on the flapperdeflipper repos (addons, skills, home-assistant-config) via the github_token secret and hasecret env injection: branches, scoped staging, token-safe push, gh pr create. Use when an MR/PR is requested."
 license: MIT
 metadata:
   author: flapperdeflipper

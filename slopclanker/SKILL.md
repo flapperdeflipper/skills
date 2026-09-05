@@ -74,7 +74,7 @@ todos_add / todos_list / todos_done / todos_archive · notes_save /
 notes_list · wiki_save / wiki_get · chat_say / chat_read · events ·
 claims_set / claims_check / claims_release
 
-REST equivalents live under `/api/…` (see the add-on's DOCS.md); the
+REST equivalents live under `/api/…` (see the SlopClanker repo: DOCS.md and docs/integrations.md at https://github.com/flapperdeflipper/slopclanker); the
 web UI is a normal client of the same API.
 
 ## Etiquette

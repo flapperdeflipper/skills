@@ -1,0 +1,10 @@
+# Dependabot version updates for CI workflow action pins.
+# (The verify workflow's ad-hoc pip installs are intentionally unpinned.)
+version: 2
+updates:
+  - package-ecosystem: github-actions
+    directory: "/"
+    schedule:
+      interval: weekly
+      day: monday
+    labels: ["dependencies"]

@@ -21,6 +21,10 @@ endpoint instead of registering servers individually:
 | `search` | `searxng` | web + GitHub code search (PAT-authenticated) |
 | `docs` | `context7` | up-to-date library documentation |
 | — | `playwright` | browser automation over CDP |
+| — | `homeassistant` | full ha-mcp-server (65 tools: state, control, safe config writes, supervisor, ESPHome/zigporter/hab) served by the opencode add-on over HTTP at 10.20.0.3:8927 (stateless, bearer token) |
+| — | `homeassistant_native` | curated Assist/entity-control tools straight from Core's own MCP endpoint |
+| — | `homeassistant` | full ha-mcp-server (65 tools: state, control, safe config writes, supervisor, ESPHome/zigporter/hab) served by the opencode add-on over HTTP at 10.20.0.3:8927 (stateless, bearer token) |
+| — | `homeassistant_native` | curated Assist/entity-control tools straight from Core's own MCP endpoint |
 
 Tool names arrive namespaced (`litellm_mcp-memory_get`, `searxng-*`, …).
 

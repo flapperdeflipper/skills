@@ -1,15 +1,21 @@
 ---
 name: litellm-memory
-description: "Durable cross-session memory via the LiteLLM proxy (/v1/memory and the memory_* MCP tools). Use when saving, recalling, or managing persistent facts, decisions, and preferences for agents across machines and sessions."
+description: "Durable cross-session memory via the LiteLLM proxy (/v1/memory and the memory_* MCP tools). Use when saving, recalling, or managing persistent facts, decisions, and preferences for agents across machines and sessions. This user wants important memories saved here eagerly — it is the shared brain for every agent on the gateway."
 license: MIT
+metadata:
+  author: flapperdeflipper
+  version: 1.1.0
 ---
 
 ## What this is
 
-LiteLLM's memory API is a key-value store (PostgreSQL-backed, redis-cached) that
-survives sessions and is shared by every agent that authenticates to the proxy.
-Access is scoped by the calling key's user/team; the personal `flip` user is a
-proxy admin and sees everything.
+LiteLLM's memory API is a key-value store (PostgreSQL-backed, redis-cached)
+that survives sessions and is shared by every agent that authenticates to the
+proxy. Access is scoped by the calling key's user/team. **The user's standing
+preference: use this store as much as possible** for anything durable — it is
+cross-agent and cross-machine, unlike local files or session context.
+
+Purpose-bound key: `litellm_memory_key` (secrets.yaml).
 
 ## Key conventions
 
@@ -22,18 +28,42 @@ Never store passwords, tokens, or anything secret.
 
 ## Access paths
 
-- **MCP (preferred for agents)**: `memory_get(key)`, `memory_set(key, value)`
-  (upsert), `memory_list(key_prefix?)`, `memory_delete(key)` — served by the
-  `litellm_mcp` stdio server through the proxy's MCP gateway (alias `memory`).
-- **REST**: `GET/PUT/DELETE /v1/memory/<key>`, `GET /v1/memory?key_prefix=…`
-  with `Authorization: Bearer <litellm key>`.
+- **MCP (preferred when wired)**: the `litellm-memory` MCP server
+  (stdio bridge `bin/mcp-litellm-memory`, wired via the add-on's
+  `opencode_config` option) provides `memory_get(key)`, `memory_set(key,
+  value)` (upsert), `memory_list(key_prefix?)`, `memory_delete(key)` in every
+  opencode session. On the LiteLLM MCP gateway the same tools exist under the
+  `litellm_mcp` server (alias `memory`).
+- **REST (works everywhere on the HA box)**:
+
+      hasecret run KEY=litellm_memory_key -- sh -c '
+        B=http://10.60.0.3:4000/v1/memory
+        curl -sS -H "Authorization: Bearer $KEY" "$B?key_prefix=opencode:"        # list
+        curl -sS -X PUT -H "Authorization: Bearer $KEY" -H "Content-Type: application/json" \
+             -d "{\"value\":\"…\"}" "$B/opencode:global:some-fact"                 # upsert
+        curl -sS -H "Authorization: Bearer $KEY" "$B/opencode:global:some-fact"    # read
+        curl -sS -X DELETE -H "Authorization: Bearer $KEY" "$B/opencode:global:some-fact"
+      '
+
+  `hasecret run` execs without a shell — the `sh -c` wrapper is required for
+  `$KEY` to expand (see the secrets skill).
 
 ## Workflow
 
-1. At session start, `memory_list("opencode:")` (or the project prefix) to
-   recall context. Do not dump everything into the conversation — pull full
-   values only for relevant keys.
-2. During work, save durable decisions with `memory_set` as they are made
-   (not at the end — sessions get interrupted).
+1. **Recall when it helps**: at session start, or when a task touches
+   cross-session/cross-agent knowledge, `memory_list` the relevant prefix and
+   `memory_get` only the keys you need. Do not dump the whole store into the
+   conversation.
+2. **Save eagerly, not at session end** — sessions get interrupted. The
+   moment something durable is confirmed, write it: user preferences and
+   conventions, infrastructure facts, confirmed decisions, gotchas other
+   agents would otherwise rediscover. Announce significant saves to the user;
+   secrets are never stored.
 3. Update by overwriting (PUT upserts); delete keys that are no longer true.
 4. Long values are truncated by `memory_list`; use `memory_get` for full text.
+
+## Seeded state (2026-09-05)
+
+`opencode:global:memory-policy` · `opencode:global:secrets-policy` ·
+`opencode:global:infra-map` · `opencode:global:opencode-rules` ·
+`opencode:homeassistant:project-context`

@@ -4,7 +4,7 @@ description: Secret management policy and tooling for /homeassistant/secrets.yam
 license: MIT
 metadata:
   author: flapperdeflipper
-  version: 1.0.0
+  version: 1.1.0
 ---
 
 # Secrets
@@ -23,11 +23,12 @@ values into logs and pollute the context window with throwaway code.
    (confirming, debugging), mask it: `*******`. At most reveal shape:
    `len=43, url-safe`. No prefixes, no suffixes, no "just the first chars".
 2. **Inject, don't read.** To use a secret in a command, inject it as an env
-   var of the child process:
-   `hasecret run TOKEN=litellm_master_key -- curl -H "Authorization: Bearer $TOKEN" …`
-   The value never reaches argv, output, or logs. `hasecret get` is a last
-   resort, only when the value itself is the deliverable (piping into another
-   tool's stdin) — its output must never be quoted back into the conversation.
+   var of the child process and expand it **inside a child shell**:
+   `hasecret run KEY=litellm_master_key -- sh -c 'curl -H "Authorization: Bearer $KEY" …'`
+   The value never reaches argv of the outer command, output, or logs.
+   `hasecret get` is a last resort, only when the value itself is the
+   deliverable (piping into another tool's stdin) — its output must never be
+   quoted back into the conversation.
 3. **Purpose-bound.** Every secret belongs to exactly one consumer, and the
    key name says which: `litellm_master_key` → the LiteLLM proxy,
    `deepseek_api_token` → DeepSeek, `prusa_api_key` → the printer. Never
@@ -61,12 +62,29 @@ Writes always: back up (`secrets.yaml.bak.<ts>`, gitignored, 10 kept) →
 write to temp → validate parse → verify the key reads back exactly → atomic
 rename. A failed verification aborts with the original untouched.
 
+## `hasecret run` has NO shell
+
+`run` execs its command directly (`exec env NAME=value cmd …`) — there is no
+shell to expand `$NAME`:
+
+- `hasecret run K=key -- curl -H "… $K"` → your own shell expands `$K` to
+  **empty** before hasecret even runs;
+- `hasecret run K=key -- curl -H '… $K'` → curl sends the **literal string**
+  `$K`.
+
+Always wrap the whole command in `sh -c` with single quotes so the injected
+variable expands inside the child shell (rule 2 idiom). Multi-line works too:
+
+    hasecret run KEY=litellm_master_key -- sh -c '
+      curl -s -H "Authorization: Bearer $KEY" http://10.60.0.3:4000/v1/models
+    '
+
 ## Idioms
 
 Authenticated call against an internal service:
 
-    hasecret run KEY=litellm_master_key -- curl -s \
-      -H "Authorization: Bearer $KEY" http://10.60.0.3:4000/v1/models
+    hasecret run KEY=litellm_master_key -- sh -c \
+      'curl -s -H "Authorization: Bearer $KEY" http://10.60.0.3:4000/v1/models'
 
 Storing a value that already exists in a variable (never on the command line
 of a shell history):
@@ -104,6 +122,8 @@ or needs rotation/audit; keep plain values for machine-local LAN plumbing.
 - **litellm add-on**: options hold key *names* (`env_vars: [{name: X, secret: key}]`);
   values resolve from secrets.yaml at start. Same pattern works for any add-on.
 - **opencode plugin** (`litellm-key.js`): calls `hasecret get litellm_ha_key`.
+- **opencode memory MCP** (`bin/mcp-litellm-memory`): calls
+  `hasecret get litellm_memory_key` at startup.
 
 ## Scope and boundaries
 

@@ -53,6 +53,19 @@ Everything belongs to a **project** (default `general`); pass `project`
 
 ## Claims — the collision guard
 
+**Worktree rule (hard convention after a real contamination incident):**
+never work directly inside a shared checkout
+(`/share/syncthing/projects/*`, `/homeassistant/addons`,
+`/homeassistant/skills`). Always create your own worktree:
+
+```bash
+git worktree add /data/worktrees/<repo>-<lane> -b <branch> origin/master
+# work there, PR from there, delete it after merge
+```
+
+And never `git add -A` in a shared tree — stage explicit paths only
+(an `add -A` once shipped another clanker's uncommitted WIP in a release).
+
 Before editing anything under a shared checkout (`/homeassistant`,
 `/homeassistant/addons`, `…`):
 

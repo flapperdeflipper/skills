@@ -1,6 +1,8 @@
+<!-- Reference for the `writing-skills` skill. Loaded on demand from SKILL.md, not automatically. -->
+
 ## Skill Creation Checklist (TDD Adapted)
 
-**IMPORTANT: Use TodoWrite to create todos for EACH checklist item below.**
+**IMPORTANT: Create a todo for EACH checklist item below.**
 
 **RED Phase - Write Failing Test:**
 - [ ] Create pressure scenarios (3+ combined pressures for discipline skills)
@@ -9,12 +11,14 @@
 
 **GREEN Phase - Write Minimal Skill:**
 - [ ] Name uses only letters, numbers, hyphens (no parentheses/special chars)
-- [ ] YAML frontmatter with only name and description (max 1024 chars)
+- [ ] YAML frontmatter with required `name` and `description` fields (max 1024 chars; see [spec](https://agentskills.io/specification))
 - [ ] Description starts with "Use when..." and includes specific triggers/symptoms
 - [ ] Description written in third person
 - [ ] Keywords throughout for search (errors, symptoms, tools)
 - [ ] Clear overview with core principle
 - [ ] Address specific baseline failures identified in RED
+- [ ] Guidance form matches the failure type (see Match the Form to the Failure)
+- [ ] For behavior-shaping guidance: wording micro-tested against a no-guidance control (5+ reps, every flagged match read manually) — N/A for pure reference skills
 - [ ] Code inline OR link to separate file
 - [ ] One excellent example (not multi-language)
 - [ ] Run scenarios WITH skill - verify agents now comply
@@ -37,32 +41,12 @@
 - [ ] Commit skill to git and push to your fork (if configured)
 - [ ] Consider contributing back via PR (if broadly useful)
 
-## Anti-Patterns
-
-### ❌ Narrative Example
-"In session 2025-10-03, we found empty projectDir caused..."
-**Why bad:** Too specific, not reusable
-
-### ❌ Multi-Language Dilution
-example-js.js, example-py.py, example-go.go
-**Why bad:** Mediocre quality, maintenance burden
-
-### ❌ Code in Flowcharts
-```dot
-step1 [label="import fs"];
-step2 [label="read file"];
-```
-**Why bad:** Can't copy-paste, hard to read
-
-### ❌ Generic Labels
-helper1, helper2, step3, pattern4
-**Why bad:** Labels should have semantic meaning
-
 ## Discovery Workflow
 
-How future Claude finds your skill:
+How future agents find your skill:
 
 1. **Encounters problem** ("tests are flaky")
+2. **Searches skills** (greps descriptions, browses categories)
 3. **Finds SKILL** (description matches)
 4. **Scans overview** (is this relevant?)
 5. **Reads patterns** (quick reference table)

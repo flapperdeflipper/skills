@@ -1,10 +1,12 @@
-## Claude Search Optimization (CSO)
+<!-- Reference for the `writing-skills` skill. Loaded on demand from SKILL.md, not automatically. -->
 
-**Critical for discovery:** Future Claude needs to FIND your skill
+## Skill Discovery Optimization (SDO)
+
+**Critical for discovery:** Future agents need to FIND your skill
 
 ### 1. Rich Description Field
 
-**Purpose:** Claude reads description to decide which skills to load for a given task. Make it answer: "Should I read this skill right now?"
+**Purpose:** Your agent reads the description to decide which skills to load for a given task. Make it answer: "Should I read this skill right now?"
 
 **Format:** Start with "Use when..." to focus on triggering conditions
 
@@ -12,14 +14,14 @@
 
 The description should ONLY describe triggering conditions. Do NOT summarize the skill's process or workflow in the description.
 
-**Why this matters:** Testing revealed that when a description summarizes the skill's workflow, Claude may follow the description instead of reading the full skill content. A description saying "code review between tasks" caused Claude to do ONE review, even though the skill's flowchart clearly showed TWO reviews (spec compliance then code quality).
+**Why this matters:** Testing revealed that when a description summarizes the skill's workflow, an agent may follow the description instead of reading the full skill content. A description saying "code review between tasks" caused an agent to do ONE review, even though the skill's flowchart clearly showed TWO reviews (spec compliance then code quality).
 
-When the description was changed to just "Use when executing implementation plans with independent tasks" (no workflow summary), Claude correctly read the flowchart and followed the two-stage review process.
+When the description was changed to just "Use when executing implementation plans with independent tasks" (no workflow summary), the agent correctly read the flowchart and followed the two-stage review process.
 
-**The trap:** Descriptions that summarize workflow create a shortcut Claude will take. The skill body becomes documentation Claude skips.
+**The trap:** Descriptions that summarize workflow create a shortcut agents will take. The skill body becomes documentation agents skip.
 
 ```yaml
-# ❌ BAD: Summarizes workflow - Claude may follow this instead of reading skill
+# ❌ BAD: Summarizes workflow - agents may follow this instead of reading skill
 description: Use when executing plans - dispatches subagent per task with code review between tasks
 
 # ❌ BAD: Too much process detail
@@ -59,7 +61,7 @@ description: Use when using React Router and handling authentication redirects
 
 ### 2. Keyword Coverage
 
-Use words Claude would search for:
+Use words an agent would search for:
 - Error messages: "Hook timed out", "ENOTEMPTY", "race condition"
 - Symptoms: "flaky", "hanging", "zombie", "pollution"
 - Synonyms: "timeout/hang/freeze", "cleanup/teardown/afterEach"
@@ -136,13 +138,13 @@ wc -w skills/path/SKILL.md
 - `creating-skills`, `testing-skills`, `debugging-with-logs`
 - Active, describes the action you're taking
 
-### 4. Cross-Referencing Other Skills
+### 5. Cross-Referencing Other Skills
 
 **When writing documentation that references other skills:**
 
 Use skill name only, with explicit requirement markers:
-- ✅ Good: `**REQUIRED SUB-SKILL:** Use the test-driven-development skill`
-- ✅ Good: `**REQUIRED BACKGROUND:** You MUST understand the debugging skill`
+- ✅ Good: `**REQUIRED SUB-SKILL:** Use test-driven-development`
+- ✅ Good: `**REQUIRED BACKGROUND:** You MUST understand systematic-debugging`
 - ❌ Bad: `See skills/testing/test-driven-development` (unclear if required)
 - ❌ Bad: `@skills/testing/test-driven-development/SKILL.md` (force-loads, burns context)
 

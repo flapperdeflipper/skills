@@ -1,0 +1,63 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "opencode agent front matter",
+  "description": "Mirrors the AgentConfig definition in https://opencode.ai/config.json (verified against opencode 1.18.27). The markdown body is the agent's prompt, so the 'prompt' field is intentionally omitted here. Consumed from .opencode/agent/*.md (project) or ~/.config/opencode/agent/*.md (global).",
+  "type": "object",
+  "required": ["description", "mode"],
+  "properties": {
+    "description": {
+      "type": "string",
+      "minLength": 20,
+      "maxLength": 1024,
+      "description": "When to use this agent. The primary agent reads this to decide what to delegate, so it must describe triggering conditions, not the prompt's contents."
+    },
+    "mode": {
+      "type": "string",
+      "enum": ["subagent", "primary", "all"],
+      "description": "primary = drives a session directly; subagent = only reachable via the task tool or @mention."
+    },
+    "model": { "type": "string" },
+    "variant": { "type": "string" },
+    "temperature": { "type": "number", "minimum": 0, "maximum": 2 },
+    "top_p": { "type": "number", "minimum": 0, "maximum": 1 },
+    "disable": { "type": "boolean" },
+    "hidden": {
+      "type": "boolean",
+      "description": "Hide a subagent from the @ autocomplete menu."
+    },
+    "color": {
+      "oneOf": [
+        { "type": "string", "pattern": "^#[0-9a-fA-F]{6}$" },
+        {
+          "type": "string",
+          "enum": ["primary", "secondary", "accent", "success", "warning", "error", "info"]
+        }
+      ]
+    },
+    "steps": {
+      "type": "integer",
+      "exclusiveMinimum": 0,
+      "description": "Max agentic iterations before a text-only response is forced."
+    },
+    "options": { "type": "object" },
+    "tools": {
+      "type": "object",
+      "additionalProperties": { "type": "boolean" },
+      "description": "DEPRECATED upstream in favour of 'permission'. Do not use in new agents."
+    },
+    "permission": {
+      "type": "object",
+      "description": "Per-tool gating. Each value is 'ask' | 'allow' | 'deny', or an object mapping a command/name pattern to one of those. The 'skill' key is what bounds an agent's context: deny '*' and allow only the skills that agent owns.",
+      "additionalProperties": {
+        "oneOf": [
+          { "type": "string", "enum": ["ask", "allow", "deny"] },
+          {
+            "type": "object",
+            "additionalProperties": { "type": "string", "enum": ["ask", "allow", "deny"] }
+          }
+        ]
+      }
+    }
+  },
+  "additionalProperties": false
+}

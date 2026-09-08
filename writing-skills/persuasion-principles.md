@@ -2,11 +2,9 @@
 
 ## Overview
 
-LLMs respond to the same persuasion principles as humans.
-Understanding this psychology helps you design more effective skills - not to manipulate, but to ensure critical practices are followed even under pressure.
+LLMs respond to the same persuasion principles as humans. Understanding this psychology helps you design more effective skills - not to manipulate, but to ensure critical practices are followed even under pressure.
 
-**Research foundation:** Meincke et al. (2025) tested 7 persuasion principles with N=28,000 AI conversations.
-Persuasion techniques more than doubled compliance rates (33% → 72%, p < .001).
+**Research foundation:** Meincke et al. (2025) tested 7 persuasion principles with N=28,000 AI conversations. Persuasion techniques more than doubled compliance rates (33% → 72%, p < .001).
 
 ## The Seven Principles
 
@@ -35,7 +33,7 @@ Persuasion techniques more than doubled compliance rates (33% → 72%, p < .001)
 **How it works in skills:**
 - Require announcements: "Announce skill usage"
 - Force explicit choices: "Choose A, B, or C"
-- Use tracking: TodoWrite for checklists
+- Use tracking: todos for checklists
 
 **When to use:**
 - Ensuring skills are actually followed
@@ -82,8 +80,8 @@ Persuasion techniques more than doubled compliance rates (33% → 72%, p < .001)
 
 **Example:**
 ```markdown
-✅ Checklists without TodoWrite tracking = steps get skipped. Every time.
-❌ Some people find TodoWrite helpful for checklists.
+✅ Checklists without todo tracking = steps get skipped. Every time.
+❌ Some people find a todo list helpful for checklists.
 ```
 
 ### 5. Unity

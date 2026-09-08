@@ -1,3 +1,5 @@
+<!-- Reference for the `writing-skills` skill. Loaded on demand from SKILL.md, not automatically. -->
+
 ## Flowchart Usage
 
 ```dot
@@ -24,12 +26,12 @@ digraph when_flowchart {
 - Linear instructions → Numbered lists
 - Labels without semantic meaning (step1, helper2)
 
-See ../graphviz-conventions.dot for graphviz style rules.
+See `graphviz-conventions.dot` in this directory for graphviz style rules.
 
-**Visualizing for your human partner:** Use `render-graphs.js` in the skill directory to render a skill's flowcharts to SVG:
+**Visualizing for your human partner:** Use `render-graphs.js` in this directory to render a skill's flowcharts to SVG:
 ```bash
-../render-graphs.js ../some-skill           # Each diagram separately
-../render-graphs.js ../some-skill --combine # All diagrams in one SVG
+./render-graphs.js ../some-skill           # Each diagram separately
+./render-graphs.js ../some-skill --combine # All diagrams in one SVG
 ```
 
 ## Code Examples
@@ -81,3 +83,24 @@ pptx/
   scripts/       # Executable tools
 ```
 When: Reference material too large for inline
+
+## Anti-Patterns
+
+### ❌ Narrative Example
+"In session 2025-10-03, we found empty projectDir caused..."
+**Why bad:** Too specific, not reusable
+
+### ❌ Multi-Language Dilution
+example-js.js, example-py.py, example-go.go
+**Why bad:** Mediocre quality, maintenance burden
+
+### ❌ Code in Flowcharts
+```dot
+step1 [label="import fs"];
+step2 [label="read file"];
+```
+**Why bad:** Can't copy-paste, hard to read
+
+### ❌ Generic Labels
+helper1, helper2, step3, pattern4
+**Why bad:** Labels should have semantic meaning

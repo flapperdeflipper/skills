@@ -5,23 +5,25 @@ description: Use when creating new skills, editing existing skills, or verifying
 
 # Writing Skills
 
+Adapted from [obra/superpowers](https://github.com/obra/superpowers) (MIT, (c) Jesse Vincent).
+
 ## Overview
 
 **Writing skills IS Test-Driven Development applied to process documentation.**
 
-**Personal skills live in agent-specific directories (`~/.claude/skills` for Claude Code, `~/.agents/skills/` for opencode)** 
+**Personal skills live in your runtime's skills directory** (`~/.claude/skills/` on Claude Code). Codex, Copilot CLI and Gemini CLI also recognize `~/.agents/skills/` as a cross-runtime alias. Skills in this repository are published to the LiteLLM skills hub — see the `home-infra` skill for how the checkout, the symlink tree and the hub relate.
 
 You write test cases (pressure scenarios with subagents), watch them fail (baseline behavior), write the skill (documentation), watch tests pass (agents comply), and refactor (close loopholes).
 
 **Core principle:** If you didn't watch an agent fail without the skill, you don't know if the skill teaches the right thing.
 
-**REQUIRED BACKGROUND:** You MUST understand the test-driven-development skill before using this skill. That skill defines the fundamental RED-GREEN-REFACTOR cycle. This skill adapts TDD to documentation.
+**REQUIRED BACKGROUND:** You MUST understand test-driven-development before using this skill. That skill defines the fundamental RED-GREEN-REFACTOR cycle. This skill adapts TDD to documentation.
 
 **Official guidance:** For Anthropic's official skill authoring best practices, see anthropic-best-practices.md. This document provides additional patterns and guidelines that complement the TDD-focused approach in this skill.
 
 ## What is a Skill?
 
-A **skill** is a reference guide for proven techniques, patterns, or tools. Skills help future Claude instances find and apply effective approaches.
+A **skill** is a reference guide for proven techniques, patterns, or tools. Skills help future agents find and apply effective approaches.
 
 **Skills are:** Reusable techniques, patterns, tools, reference guides
 
@@ -55,8 +57,8 @@ The entire skill creation process follows RED-GREEN-REFACTOR.
 **Don't create for:**
 - One-off solutions
 - Standard practices well-documented elsewhere
-- Project-specific conventions (put in CLAUDE.md)
-- Mechanical constraints (if it's enforceable with regex/validation, automate it; save documentation for judgment calls)
+- Project-specific conventions (put in your instructions file)
+- Mechanical constraints (if it's enforceable with regex/validation, automate it—save documentation for judgment calls)
 
 ## Skill Types
 
@@ -70,6 +72,7 @@ Way of thinking about problems (flatten-with-flags, test-invariants)
 API docs, syntax guides, tool documentation (office docs)
 
 ## Directory Structure
+
 
 ```
 skills/
@@ -92,13 +95,13 @@ skills/
 ## SKILL.md Structure
 
 **Frontmatter (YAML):**
-- Only two fields supported: `name` and `description`
+- Two required fields: `name` and `description` (see [agentskills.io/specification](https://agentskills.io/specification) for all supported fields)
 - Max 1024 characters total
 - `name`: Use letters, numbers, and hyphens only (no parentheses, special chars)
 - `description`: Third-person, describes ONLY when to use (NOT what it does)
   - Start with "Use when..." to focus on triggering conditions
   - Include specific symptoms, situations, and contexts
-  - **NEVER summarize the skill's process or workflow** (see references/cso.md for why)
+  - **NEVER summarize the skill's process or workflow** (see [references/sdo.md](references/sdo.md) for why)
   - Keep under 500 characters if possible
 
 ```markdown
@@ -134,11 +137,6 @@ What goes wrong + fixes
 ## Real-World Impact (optional)
 Concrete results
 ```
-
-## Claude Search Optimization (CSO)
-
-Future Claude must be able to FIND your skill. See [references/cso.md](references/cso.md) for the full guidance: description field rules ("Use when..." triggering conditions, never a workflow summary), keyword coverage, naming, token efficiency, and cross-referencing other skills.
-
 ## The Iron Law (Same as TDD)
 
 ```
@@ -183,11 +181,23 @@ Run same scenarios WITH skill. Agent should now comply.
 
 Agent found new rationalization? Add explicit counter. Re-test until bulletproof.
 
-**Testing methodology:** See @testing-skills-with-subagents.md for the complete testing methodology: how to write pressure scenarios, pressure types (time, sunk cost, authority, exhaustion), plugging holes systematically, meta-testing techniques.
+### Micro-Test Wording Before Full Scenarios
 
-**Per-type test approaches, rationalization tables, and bulletproofing techniques** (closing loopholes, spirit-vs-letter, red flags): see [references/testing.md](references/testing.md).
+Full pressure-scenario runs are the final gate, but they are slow and expensive per iteration. Verify the wording itself first with micro-tests:
 
-**Flowchart, code example, and file-organization guidance:** see [references/design-details.md](references/design-details.md).
+1. **One fresh-context sample per call** — a raw API call, or a single-shot subagent if you don't have API access. System prompt = the realistic context the guidance will live in (the full skill or prompt template, not the guidance in isolation); user message = a task that tempts the failure.
+2. **Always include a no-guidance control.** If the control doesn't exhibit the failure, there is nothing to fix — stop, don't author the guidance.
+3. **5+ reps per variant.** Single samples lie.
+4. **Manually read every flagged match.** Score programmatically if you like, but template echoes and quoted counter-examples masquerade as hits; automated counts alone overstate both failure and success.
+5. **Variance is a metric.** When guidance lands, reps converge on the same shape. Five different interpretations across five reps means the wording isn't binding — tighten the form before adding words.
+
+Micro-tests verify wording; they do not replace pressure scenarios for discipline skills.
+
+**Testing methodology:** See [testing-skills-with-subagents.md](testing-skills-with-subagents.md) for the complete testing methodology:
+- How to write pressure scenarios
+- Pressure types (time, sunk cost, authority, exhaustion)
+- Plugging holes systematically
+- Meta-testing techniques
 
 ## STOP: Before Moving to Next Skill
 
@@ -198,16 +208,24 @@ Agent found new rationalization? Add explicit counter. Re-test until bulletproof
 - Move to next skill before current one is verified
 - Skip testing because "batching is more efficient"
 
-The deployment checklist below is MANDATORY for EACH skill. Deploying untested skills = deploying untested code. It's a violation of quality standards.
+**The deployment checklist in [references/checklist.md](references/checklist.md) is MANDATORY for EACH skill.**
 
-**Full checklist, anti-patterns, and discovery workflow:** see [references/checklist.md](references/checklist.md).
+Deploying untested skills = deploying untested code. It's a violation of quality standards.
 
-## The Bottom Line
+## Deeper material
 
-**Creating skills IS TDD for process documentation.**
+These load only when you need them — do not read them all up front.
 
-Same Iron Law: No skill without failing test first.
-Same cycle: RED (baseline) → GREEN (write skill) → REFACTOR (close loopholes).
-Same benefits: Better quality, fewer surprises, bulletproof results.
+- **Making a skill findable** (description rules, keyword coverage, naming,
+  token efficiency, cross-referencing): [references/sdo.md](references/sdo.md).
+  Read before writing any `description`.
+- **Testing a skill** (per-type approaches, rationalization tables,
+  bulletproofing, red flags): [references/testing.md](references/testing.md).
+  Read before claiming a skill works.
+- **Flowcharts, code examples, file organization, anti-patterns**:
+  [references/design-details.md](references/design-details.md).
+- **The deployment checklist and discovery workflow**:
+  [references/checklist.md](references/checklist.md). Read at the STOP gate.
 
-If you follow TDD for code, follow it for skills. It's the same discipline applied to documentation.
+Related: `writing-for-agents` covers prose conventions for agent-facing
+documents; `test-driven-development` defines the cycle this skill adapts.

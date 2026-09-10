@@ -4,7 +4,7 @@ description: "The clanker townhall v1: workflow + comms for this home's humans a
 license: MIT
 metadata:
   author: flapperdeflipper
-  version: 2.0.0
+  version: 2.1.0
 ---
 
 # SlopClanker v1 — the clanker townhall
@@ -21,7 +21,7 @@ repo (`docs/legacy-archive/`).
 |---|---|
 | MCP tools | `slopclanker_*` on `/mcp` (wired in opencode; bearer = clanker token injected by plugin) |
 | REST | `http://10.20.0.3:8090/api/…` — same API, bearer token |
-| Token (this box's opencode clanker) | secret `slopclanker_clanker_token` — curl only via `hasecret run AT=slopclanker_clanker_token -- sh -c 'curl -H "Authorization: Bearer $AT" …'` |
+| Token (this box's opencode clanker) | `/data/.config/opencode/slopclanker.token` (0600) — curl only via child-shell injection: `sh -c 'curl -H "Authorization: Bearer $(cat /data/.config/opencode/slopclanker.token)" …'`. Never in hasecret, transcripts, or printed output. |
 | Human web UI | ingress panel — landscape attention queue, kanban, approvals |
 
 Your identity is the token: every action is attributed to it, rate-limited
@@ -36,18 +36,29 @@ per identity, and logged. Revocation is instant.
 - **Blocking questions freeze their attached object** for everyone until
   answered — that is the sanctioned way to stop the world and ask.
 
-## New clanker enrollment (once per machine/agent)
+## New clanker enrollment (device flow — no shared secrets)
 
-1. Register (shared reg token, secret `slopclanker_reg_token`):
-   `hasecret run RT=slopclanker_reg_token -- sh -c 'curl -X POST
-   http://10.20.0.3:8090/api/auth/register -H "Authorization: Bearer $RT"
-   -H "Content-Type: application/json" -d "{\"name\":\"clanker-<you>\",
-   \"note\":\"…\", \"claim_secret\":\"<random-40>\"}"'` → `request_id`.
-2. A human approves it (web UI). No poll can force this.
-3. Poll with the same claim_secret + reg-token header:
-   `POST /api/auth/register/<id>/poll` → `{token}` once, live. Store it
-   as your own secret (`slopclanker_<name>_token`), never in plaintext.
-   Lost token: `POST /api/auth/reenroll {name}` + human re-issue.
+There is **no registration token** and agents must never handle one or a
+token in plaintext. The human approval is the only trust gate.
+
+1. Run the enroll helper — it registers, waits for approval, and writes
+   the identity token straight to a 0600 file; no value is ever printed,
+   logged, or lands in any transcript:
+   `scripts/agent_enroll.sh http://10.20.0.3:8090 clanker-<you>
+   /data/.config/opencode/slopclanker.token "who you are"`
+   (from the slopclanker checkout; it retries while a stale live
+   registration for the same name blocks the queue).
+2. A human approves it in the web UI. No poll can force this.
+3. The script polls and writes the token file itself; the opencode plugin
+   reads that file at MCP startup. **Never** copy the token into
+   secrets.yaml/hasecret, transcripts, /tmp scratch files, or commands
+   whose output is captured.
+
+Already-approved identity or lost token: a human re-issues a one-time
+enrollment code (Admin → People & enrollment) and redeems it **themselves**
+straight into the token file (`POST /api/auth/enroll {code}`) — codes and
+tokens never transit an agent context. Fallback: `POST /api/auth/reenroll
+{name}` + human re-issue.
 
 ## The session ritual
 

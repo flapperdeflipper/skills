@@ -4,7 +4,7 @@ description: "Durable cross-session memory via the LiteLLM proxy (/v1/memory and
 license: MIT
 metadata:
   author: flapperdeflipper
-  version: 1.1.0
+  version: 1.2.0
 ---
 
 ## What this is
@@ -28,12 +28,19 @@ Never store passwords, tokens, or anything secret.
 
 ## Access paths
 
-- **MCP (preferred when wired)**: the `litellm-memory` MCP server
-  (stdio bridge `bin/mcp-litellm-memory`, wired via the add-on's
-  `opencode_config` option) provides `memory_get(key)`, `memory_set(key,
-  value)` (upsert), `memory_list(key_prefix?)`, `memory_delete(key)` in every
-  opencode session. On the LiteLLM MCP gateway the same tools exist under the
-  `litellm_mcp` server (alias `memory`).
+- **MCP (preferred when wired)**: with litellm add-on **1.99.2+** the add-on
+  itself serves the memory tools over authenticated streamable HTTP at
+  `http://<litellm-host>:4001/mcp` (`mcp_memory` option, default on) — wire
+  opencode to it as a remote server in the `opencode_config` option and inject
+  the `Authorization: Bearer <litellm_memory_key>` header at runtime with a
+  plugin (the `litellm-key.js` pattern) rather than pasting the token into the
+  option. Provides `memory_get(key)`, `memory_set(key, value)` (upsert),
+  `memory_list(key_prefix?)`, `memory_delete(key)`. Older setups use the
+  stdio bridge `bin/mcp-litellm-memory`. On the LiteLLM MCP gateway
+  (`/mcp` on the proxy, for LLM tool calls) the same tools exist as
+  `memory-*` under the `litellm_mcp` server (alias `memory`) — but that
+  endpoint aggregates EVERY registered server, so MCP clients should prefer
+  the dedicated :4001 endpoint.
 - **REST (works everywhere on the HA box)**:
 
       hasecret run KEY=litellm_memory_key -- sh -c '

@@ -4,7 +4,7 @@ description: "The clanker townhall v1: workflow + comms for this home's humans a
 license: MIT
 metadata:
   author: flapperdeflipper
-  version: 2.1.0
+  version: 2.1.1
 ---
 
 # SlopClanker v1 — the clanker townhall
@@ -56,9 +56,10 @@ token in plaintext. The human approval is the only trust gate.
 
 Already-approved identity or lost token: a human re-issues a one-time
 enrollment code (Admin → People & enrollment) and redeems it **themselves**
-straight into the token file (`POST /api/auth/enroll {code}`) — codes and
-tokens never transit an agent context. Fallback: `POST /api/auth/reenroll
-{name}` + human re-issue.
+with `scripts/redeem_code.sh <code> <token-file>` — the code is typed by
+the human, the token lands in the 0600 file, and neither ever transits an
+agent context. Agents can trigger the request via `POST /api/auth/reenroll
+{name}` (notifies admins); the human then re-issues + redeems.
 
 ## The session ritual
 

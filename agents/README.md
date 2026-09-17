@@ -28,16 +28,19 @@ reachable by `@name` or dispatched automatically via the `task` tool.
 
 | Agent | Mode | Owns |
 |---|---|---|
-| `manager` | primary | Planning and delegation. Cannot edit or write. |
-| `infra-engineer` | subagent | terraform, helm, kubernetes, cloud-architect |
-| `code-engineer` | subagent | python, golang-pro, rust-engineer, typescript-pro, bash-scripting |
-| `review-security` | subagent | code-review, security-reviewer. Read-only. |
-| `debug-researcher` | subagent | systematic-debugging, diagnosing-bugs, research |
-| `docs-writer` | subagent | documentation, writing-for-agents, writing-skills |
-| `frontend-developer` | subagent | typescript-pro, playwright-expert, prototype |
-| `dba` | subagent | postgres-pro |
-| `senior-linux-engineer` | subagent | home-infra, sre-engineer, monitoring-expert, secrets |
-| `embedded-linux-engineer` | subagent | buildroot, offline-lab |
+| `manager` | primary | Planning and delegation. Cannot edit or write. dev-workflow, home-infra (mr-workflow) |
+| `infra-engineer` | subagent | infrastructure |
+| `code-engineer` | subagent | languages, backend |
+| `review-security` | subagent | code-review, security-audit. Read-only. |
+| `debug-researcher` | subagent | debugging, research |
+| `docs-writer` | subagent | writing, software-design (domain-modeling) |
+| `frontend-developer` | subagent | languages (typescript-pro), playwright-expert, software-design (prototype) |
+| `dba` | subagent | backend (postgres-pro) |
+| `senior-linux-engineer` | subagent | home-infra, operations, languages (bash-scripting), secrets, wizard |
+| `embedded-linux-engineer` | subagent | offline-lab |
+
+Most skills are hubs (see the top-level README), so an allowlist names a hub
+and the agent's prompt names the guide inside it.
 
 ## How this bounds context
 
@@ -55,25 +58,33 @@ the skills it owns:
 permission:
   skill:
     "*": deny
-    "terraform": allow
-    "kubernetes": allow
+    "infrastructure": allow
+    "secrets": allow
 ```
 
 A skill body loads when the skill fires. Bounding *which* skills an agent can
-fire bounds what it can ever pull in. `dba` cannot load `kubernetes`; the
-manager cannot load either. Allowlists are checked against real skill
+fire bounds what it can ever pull in. `dba` cannot load `infrastructure`; the
+manager cannot load it either. Allowlists are checked against real skill
 directories in CI, so a renamed skill fails the build instead of silently
 disappearing from an agent's reach.
 
-**3. Reference routing inside skills.** Only `SKILL.md` loads when a skill
-fires; anything in `references/` loads only when the SKILL.md points at it.
-The heavy skills already work this way — `terraform` is 5k tokens of SKILL.md
-in front of 43k of references, `kubernetes` 2k in front of 63k. Agents are
-told to read the one reference file their task needs, not the tree.
+Allowlists gate skills, not the files inside them, so a hub is the smallest
+unit an allowlist can grant. An agent granted `backend` for `postgres-pro` can
+also read the `mcp-developer` guide. That is acceptable because guides load
+only when read, and each agent's prompt names the guides it should use.
 
-For scale: all 57 skill descriptions together are ~3.2k tokens, and those are
-resident in every session regardless. The bodies total ~380k. Which bodies
-load is the entire game.
+**3. Routing inside skills.** Only a hub's `SKILL.md` router loads when the
+skill fires. The router names one `GUIDE.md` for the task, and the guide names
+at most one file under its `references/`. `infrastructure` → `terraform` is ~5k
+tokens of guide in front of 43k of references; `kubernetes` is 2k in front of
+63k. Agents are told to read the one guide and the one reference their task
+needs, not the tree.
+
+For scale: before the hub restructure, 56 model-visible descriptions came to
+~3.2k tokens, resident in every session. Folded into hubs, 18 descriptions
+come to ~1.3k (`verify_skills.py` prints the live number). The bodies total
+~380k, and which of them load is still the whole game: a hub router costs
+~500 tokens, and only the one guide it routes to loads after that.
 
 ## Writing a new agent
 

@@ -22,18 +22,54 @@ the delegation and context model works.
 - `scripts/sync-skill-hub.sh` - registers/updates skills in the LiteLLM hub
   (dry-run by default, `--apply` to execute); it globs `*/SKILL.md`, so
   `agents/` is not published as a skill
-- CI (`verify-skills`) checks frontmatter against the schemas, plus shell
-  script syntax and shellcheck, on every PR and push to master
+- CI (`verify-skills`) checks frontmatter against the schemas, the context
+  budget and hub layout, shell script syntax and shellcheck, and runs the
+  `security-audit` validator tests, on every PR and push to master
 - Synced from local dotfiles; this repo is the canonical published source
 
 ## Keeping context small
 
-Only a skill's `SKILL.md` loads when the skill fires; anything under
-`references/` loads only when `SKILL.md` points at it. Heavy skills are built
-that way deliberately — `terraform` is ~5k tokens of `SKILL.md` in front of
-~43k of references, `kubernetes` ~2k in front of ~63k. When adding to a skill,
-put reference material in `references/` and keep `SKILL.md` worth loading every
-time.
+Every model-invoked skill's `description` sits in context in every session, so
+the repo keeps few of them. Related skills are folded into **hub skills**:
+
+```
+<hub>/SKILL.md            thin router: description + "read <guide> when" table
+<hub>/<guide>/GUIDE.md    a former skill's body, loaded only when routed to
+<hub>/<guide>/references/ deeper material, loaded only when the guide says so
+```
+
+| Hub | Guides |
+|---|---|
+| `dev-workflow` | brainstorming, grilling, writing-plans, executing-plans, subagent-driven-development, dispatching-parallel-agents, using-git-worktrees, test-driven-development, verification-before-completion, finishing-a-development-branch, resolving-merge-conflicts, workflow |
+| `code-review` | branch-review, requesting-code-review, receiving-code-review |
+| `debugging` | systematic-debugging, diagnosing-bugs |
+| `software-design` | codebase-design, domain-modeling, prototype |
+| `languages` | python, golang-pro, rust-engineer, typescript-pro, bash-scripting |
+| `backend` | api-designer, fastapi-expert, postgres-pro, mcp-developer |
+| `infrastructure` | terraform, helm, kubernetes, cloud-architect |
+| `operations` | sre-engineer, monitoring-expert |
+| `writing` | documentation, writing-for-agents, writing-skills, prompt-engineer |
+| `home-infra` | map, home-assistant-ops, litellm-gateway, mqtt-mcp, opencode-sessions, session-cleanup, mr-workflow |
+| `offline-lab` | project, buildroot |
+
+Standalone skills: `security-audit` (vendored from
+[cloudflare/security-audit-skill](https://github.com/cloudflare/security-audit-skill),
+MIT; guidance mode by default, the six-phase audit lives in
+`references/FULL-AUDIT.md`), `secrets`, `litellm-memory`, `research`,
+`socrates`, `playwright-expert`, `wizard`. `grill-with-docs`, `handoff` and
+`improve-codebase-architecture` set `disable-model-invocation`, so they cost no
+resident context and stay `/commands`.
+
+Rules, enforced by `scripts/verify_skills.py`:
+
+- Guides are named `GUIDE.md`, never `SKILL.md`: loaders that glob recursively
+  would list them as separate skills again.
+- Every guide is named in its hub's router table.
+- A hub is self-contained (skills are installed one at a time); reach another
+  hub's file by naming that skill, not with a `../../` path.
+- Descriptions stay within 400 chars and `SKILL.md` within 12 KB. Put detail in
+  a guide or `references/`.
+- Relative markdown links must resolve.
 
 Agents narrow this further: each one denies `skill: "*"` and allows only the
 skills it owns, so a specialist can never pull in a domain it does not handle.

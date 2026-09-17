@@ -1,6 +1,6 @@
 ---
 name: secrets
-description: Secret management policy and tooling for /homeassistant/secrets.yaml via hasecret — names-only discovery, masked output (*******), env-var injection instead of printing, byte-preserving writes, and op:// 1Password references. Use whenever a secret must be read, written, rotated, deleted, or consumed by a command; NEVER parse secrets.yaml with inline YAML/regex snippets.
+description: "Secret policy and tooling for /homeassistant/secrets.yaml via hasecret: names-only discovery, masked output, env-var injection, byte-preserving writes, op:// 1Password references. Use whenever a secret is read, written, rotated, deleted or consumed by a command. NEVER parse secrets.yaml with inline YAML/regex snippets."
 license: MIT
 metadata:
   author: flapperdeflipper

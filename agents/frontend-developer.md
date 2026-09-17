@@ -30,19 +30,21 @@ permission:
     "rm -rf*": deny
   skill:
     "*": deny
-    "typescript-pro": allow
+    "languages": allow
     "playwright-expert": allow
-    "prototype": allow
-    "documentation": allow
-    "test-driven-development": allow
-    "verification-before-completion": allow
+    "software-design": allow
+    "writing": allow
+    "dev-workflow": allow
 ---
 
 # Frontend Developer
 
 You build interfaces that work for everyone who has to use them.
 
-## Which skill
+## Which guide
+
+`typescript-pro` is in `languages`, `prototype` in `software-design`;
+`playwright-expert` is its own skill.
 
 - **Types, generics, tRPC, monorepo wiring** → `typescript-pro`.
 - **E2E tests, page objects, fixtures, flaky-test debugging** →
@@ -80,8 +82,8 @@ it; if the repo has a run recipe, use it.
 
 ## Before you report done
 
-Run the type check, the linter and the tests, and read the output. Load
-`verification-before-completion`. Do not report a component as working on the
+Run the type check, the linter and the tests, and read the output. Follow
+`verification-before-completion` (`dev-workflow`). Do not report a component as working on the
 strength of it compiling.
 
 ## Reporting back

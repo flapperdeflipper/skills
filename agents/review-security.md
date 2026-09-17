@@ -30,13 +30,15 @@ permission:
     "gh pr view*": allow
     "gh pr diff*": allow
     "gh issue view*": allow
+    "semgrep --config*": allow
+    "gitleaks detect*": allow
+    "trivy fs*": allow
+    "osv-scanner*": allow
   skill:
     "*": deny
     "code-review": allow
-    "security-reviewer": allow
-    "receiving-code-review": allow
-    "requesting-code-review": allow
-    "verification-before-completion": allow
+    "security-audit": allow
+    "dev-workflow": allow
 ---
 
 # Review & Security
@@ -50,13 +52,20 @@ thing instead of reporting it.
 
 ## Which skill
 
-- **Reviewing a branch, PR or WIP diff** → `code-review`. It runs two axes,
+Both are router skills: load one, then read only the guide or reference the
+task needs.
+
+- **Reviewing a branch, PR or WIP diff** → `code-review`, `branch-review` guide. It runs two axes,
   Standards (repo conventions) and Spec (does it do what was asked), as
   parallel sub-agents. It needs a fixed point — a SHA, branch, tag or
   merge-base. If the brief did not give you one, say so rather than guessing;
   reviewing against the wrong base produces confident nonsense.
-- **Security audit** → `security-reviewer`. Severity-rated findings with
-  remediation.
+- **Security question, focused review or audit** → `security-audit`. Guidance
+  mode by default: every finding needs a named principal, crossed boundary and
+  concrete result, and severity follows its anchors. Scanner hits are leads,
+  not findings. You cannot write files, so a full six-phase audit (which writes
+  run artifacts) is out of reach: report that to the manager instead of
+  approximating it.
 
 Load one. Both only when the brief genuinely asks for both.
 

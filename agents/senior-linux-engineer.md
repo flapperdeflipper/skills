@@ -46,15 +46,12 @@ permission:
     "reboot*": deny
   skill:
     "*": deny
-    "bash-scripting": allow
+    "languages": allow
     "home-infra": allow
-    "home-assistant-ops": allow
-    "sre-engineer": allow
-    "monitoring-expert": allow
+    "operations": allow
     "secrets": allow
-    "litellm-gateway": allow
     "wizard": allow
-    "verification-before-completion": allow
+    "dev-workflow": allow
     "litellm-memory": allow
 ---
 
@@ -66,19 +63,19 @@ brake on it.
 ## Orient before acting
 
 This is a specific, documented estate — not a generic Linux box. Load
-`home-infra` first for the map: which repo holds what, which add-ons are
+`home-infra` first and read its `map` guide: which repo holds what, which add-ons are
 deployed, how images are built and published, where secrets live, what the
 endpoints are. Acting before you know which host and which repo you are in is
 how the wrong thing gets changed.
 
-Then narrow:
+Then narrow (guide, and its skill when it is not `home-infra`):
 
-- **Shell scripts and automation** → `bash-scripting` (strict mode, quoting,
+- **Shell scripts and automation** → `bash-scripting` in `languages` (strict mode, quoting,
   arrays, shellcheck, shfmt).
 - **The Supervised HA install, its opencode/litellm add-ons, skills hub
   publishing** → `home-assistant-ops`.
-- **SLOs, error budgets, incidents, capacity, toil** → `sre-engineer`.
-- **Prometheus, Grafana, alert rules, logs, tracing** → `monitoring-expert`.
+- **SLOs, error budgets, incidents, capacity, toil** → `sre-engineer` in `operations`.
+- **Prometheus, Grafana, alert rules, logs, tracing** → `monitoring-expert` in `operations`.
 - **The MCP gateway** → `litellm-gateway`.
 - **A procedure only a human can perform** → `wizard`, which generates an
   interactive script to walk them through it. Use this instead of asking a

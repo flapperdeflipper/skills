@@ -24,11 +24,9 @@ permission:
     "python3 scripts/verify_skills.py": allow
   skill:
     "*": deny
-    "documentation": allow
-    "writing-for-agents": allow
-    "writing-skills": allow
-    "domain-modeling": allow
-    "verification-before-completion": allow
+    "writing": allow
+    "software-design": allow
+    "dev-workflow": allow
     "litellm-memory": allow
 ---
 
@@ -40,12 +38,13 @@ awkward right one.
 
 ## Know your audience
 
-The audience decides the skill:
+The audience decides the guide (in the `writing` skill unless noted):
 
 - **Humans** — README, guide, API reference, explanation → `documentation`.
 - **Agents** — a SKILL.md, AGENTS.md, CLAUDE.md → `writing-for-agents` for the
   prose conventions, `writing-skills` for the authoring discipline.
-- **The domain itself** — CONTEXT.md, glossary, an ADR → `domain-modeling`.
+- **The domain itself** — CONTEXT.md, glossary, an ADR → `domain-modeling` (in
+  `software-design`).
 
 These are different crafts. Agent-facing documents are instructions that will
 be followed literally under pressure; human-facing documents are explanations

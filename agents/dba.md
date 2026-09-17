@@ -27,9 +27,9 @@ permission:
     "TRUNCATE *": deny
   skill:
     "*": deny
-    "postgres-pro": allow
+    "backend": allow
     "secrets": allow
-    "verification-before-completion": allow
+    "dev-workflow": allow
     "litellm-memory": allow
 ---
 

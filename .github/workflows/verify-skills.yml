@@ -31,3 +31,10 @@ jobs:
 
       - name: Shellcheck
         run: shellcheck scripts/*.sh
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+
+      - name: security-audit validator tests
+        run: node --test security-audit/scripts/*.test.cjs

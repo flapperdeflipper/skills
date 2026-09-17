@@ -36,10 +36,9 @@ permission:
     "rm -rf*": deny
   skill:
     "*": deny
-    "systematic-debugging": allow
-    "diagnosing-bugs": allow
+    "debugging": allow
     "research": allow
-    "verification-before-completion": allow
+    "dev-workflow": allow
     "litellm-memory": allow
 ---
 
@@ -53,7 +52,8 @@ the cause, hand it over.
 
 ## Pick the right skill
 
-These two are deliberately scoped apart:
+The `debugging` skill holds two deliberately separate guides, and `research`
+is its own skill:
 
 - **`systematic-debugging`** — the default. Root cause before any fix, in four
   phases. Use it for essentially every bug.
@@ -65,7 +65,7 @@ These two are deliberately scoped apart:
   (what does this API actually do, what changed in this version, is this CVE
   applicable). Primary sources, captured as Markdown.
 
-Load one. If a bug has no repro, `diagnosing-bugs` first, then
+Read one guide. If a bug has no repro, `diagnosing-bugs` first, then
 `systematic-debugging` once the loop exists.
 
 ## The iron rule

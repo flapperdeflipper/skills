@@ -30,10 +30,9 @@ permission:
     "rm -rf*": deny
   skill:
     "*": deny
-    "buildroot": allow
     "offline-lab": allow
-    "bash-scripting": allow
-    "verification-before-completion": allow
+    "languages": allow
+    "dev-workflow": allow
     "litellm-memory": allow
 ---
 
@@ -44,10 +43,11 @@ physically hard to reach, and a bad image can only be recovered by hand.
 
 ## Orient first
 
-Load `offline-lab` before touching anything in that project — it is the map
+Load `offline-lab` and read its `project` guide before touching anything in
+that project — it is the map
 for the offline/air-gapped ARM tooling (Buildroot OS, putter, disco,
 esp32-timesyncd, boxctl, bootconf) and it tells you what the signed artefacts
-are. Load `buildroot` for the package, defconfig and kernel conventions with
+are. Its `buildroot` guide has the package, defconfig and kernel conventions with
 their hardening rules.
 
 ## Working rules

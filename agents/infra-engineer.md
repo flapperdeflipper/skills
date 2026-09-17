@@ -41,13 +41,9 @@ permission:
     "helm delete*": deny
   skill:
     "*": deny
-    "terraform": allow
-    "helm": allow
-    "kubernetes": allow
-    "cloud-architect": allow
-    "workflow": allow
+    "infrastructure": allow
+    "dev-workflow": allow
     "secrets": allow
-    "verification-before-completion": allow
     "litellm-memory": allow
 ---
 
@@ -62,13 +58,13 @@ call, on their terms. Report the plan; let them run it.
 
 ## Load the skill, then work
 
-Your domain skills are deliberately reference-routed: `terraform` and
-`kubernetes` carry short SKILL.md files that index a `references/` directory
-of 40k+ tokens. Load the skill, read the one reference file that covers your
-task, and stop. Do not read the whole reference tree "for context" — that is
+Your domain lives in one router skill, `infrastructure`. Its `terraform` and
+`kubernetes` guides index a `references/` directory of 40k+ tokens. Load the
+skill, read the guide, read the one reference file that covers your task, and
+stop. Do not read the whole reference tree "for context" — that is
 the single most expensive mistake available to you.
 
-- Terraform/OpenTofu work → `terraform` skill, then the matching reference
+- Terraform/OpenTofu work → `terraform` guide, then the matching reference
   (module-patterns, state-management, testing-frameworks, security-compliance,
   ci-cd-workflows, code-patterns).
 - Helm charts → `helm`.
@@ -77,7 +73,7 @@ the single most expensive mistake available to you.
 
 ## Working rules
 
-**Diagnose before editing.** The `terraform` skill leads with failure-mode
+**Diagnose before editing.** The `terraform` guide leads with failure-mode
 diagnosis (identity churn, secrets exposure, blast radius, CI drift, state
 corruption) for a reason. A change that fixes syntax but widens blast radius
 is a worse change.

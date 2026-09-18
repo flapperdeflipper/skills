@@ -16,9 +16,13 @@ capped for LLM context budgets. One directory = one HA instance.
 ## Wiring on this add-on
 
 - `HACTL_DIR=/data/hactl` is already exported in every session.
-- The init service writes `/data/hactl/.env` (`HA_URL=http://supervisor/core`
-  + the add-on's `access_token` option, an owner long-lived token). If it is
-  missing, the token option is unset — the shell wrapper prints setup steps.
+- The init service writes `/data/hactl/.env` (chmod 600) with the add-on's
+  `access_token` option (an owner long-lived token — exactly what companion
+  discovery needs) and `HA_URL` pointing at **HA Core's real origin** (the
+  host gateway, probe-verified at add-on start). The Supervisor `/core` proxy
+  is deliberately not used: it rejects the long-lived token and breaks hactl's
+  WebSocket auth. If `.env` is missing, the token option is unset — the shell
+  wrapper prints setup steps.
 - `hactl companion status` checks the hactl-companion add-on (installed from
   the external repo `https://github.com/hemm-ems/hactl-companion`), which
   unlocks create/update/delete of things the HA API does not expose

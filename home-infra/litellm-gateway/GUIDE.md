@@ -15,7 +15,8 @@ endpoint instead of registering servers individually:
 | `memory` | `litellm_mcp` | memory_get/set/list/delete + registry_list discovery |
 | `search` | `searxng` | web + GitHub code search (PAT-authenticated) |
 | `docs` | `context7` | up-to-date library documentation |
-| — | `playwright` | browser automation over CDP |
+| — | `playwright` | browser automation over CDP (endpoint via `PLAYWRIGHT_CDP_ENDPOINT` env var) |
+| — | `victoriametrics` | PromQL queries against Victoria Metrics (`prometheus-mcp-server`, basic auth from secrets) |
 | — | `homeassistant` | full ha-mcp-server (65 tools: state, control, safe config writes, supervisor, ESPHome/zigporter/hab) served by the opencode add-on over HTTP at 10.20.0.3:8927 (stateless, bearer token) |
 | — | `homeassistant_native` | curated Assist/entity-control tools straight from Core's own MCP endpoint |
 

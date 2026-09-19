@@ -122,7 +122,8 @@ or needs rotation/audit; keep plain values for machine-local LAN plumbing.
 - **litellm add-on**: options hold key *names* (`env_vars: [{name: X, secret: key}]`);
   values resolve from secrets.yaml at start. Same pattern works for any add-on.
 - **opencode plugin** (`litellm-key.js`): calls `hasecret get litellm_ha_key`.
-- **opencode memory MCP** (`bin/mcp-litellm-memory`): calls
+- **opencode memory plugin**
+  (`/data/.config/opencode/plugin/litellm-memory-mcp.js`): calls
   `hasecret get litellm_memory_key` at startup.
 
 ## Scope and boundaries

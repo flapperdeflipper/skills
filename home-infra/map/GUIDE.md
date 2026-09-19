@@ -29,9 +29,11 @@ skills hub) · `searxng_with_mcp` · `mosquitto` · `playwright-browser` ·
   (`/mcp_servers/litellm_mcp`): memory_get/set/list/delete + registry_list,
   spawned by the proxy; `LITELLM_MEMORY_KEY` (secret `litellm_memory_key`)
   scopes it.
-- **mcp-litellm-memory** — `/homeassistant/bin/mcp-litellm-memory`: tiny stdio
-  MCP bridge that exposes the memory tools directly in opencode sessions
-  (wired via the add-on's `opencode_config` option).
+- **litellm-memory in opencode** — plugin
+  `/data/.config/opencode/plugin/litellm-memory-mcp.js`: wires the memory
+  tools into opencode sessions by pointing an MCP client at the litellm
+  add-on's standalone memory server (:4001, bearer key from hasecret;
+  never written to any config file).
 - **hasecret** — `/homeassistant/bin/hasecret`, the only way to touch
   `/homeassistant/secrets.yaml` (see the secrets skill).
 - **OpenChamber** — browser UI for OpenCode, pinned and Ingress-patched in the

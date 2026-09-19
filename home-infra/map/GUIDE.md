@@ -8,9 +8,10 @@
 | dotfiles (`/share/syncthing/dotfiles/profile`) | Per-machine agent config synced via syncthing: `.agents/`, `.claude/`, `.config/opencode/`, `.pi/agent/`. Skills there are the upstream source of the skills repo. |
 
 `/homeassistant/addons/` is the **deployed copy** of the add-on sources; the
-GitHub repo is where images are built from. Changes must land in both (edit
-locally, then PR into the repo) — and every add-on change needs a version bump
-in `config.yaml` plus a CHANGELOG entry.
+GitHub repo is where images are built from. Changes land via PR from a
+`/share/worktrees` worktree (below) — and every add-on change needs a version
+bump in `config.yaml` plus a CHANGELOG entry. The main checkout usually sits
+on the human's in-flight feature branch: never branch, commit or rebase there.
 
 ## Deployed add-ons (/homeassistant/addons/)
 
@@ -41,10 +42,29 @@ skills hub) · `searxng_with_mcp` · `mosquitto` · `playwright-browser` ·
 
 ## Publishing an add-on
 
-1. Edit under `/homeassistant/addons/<addon>/`, bump `version:`, CHANGELOG.
+1. Edit in a `/share/worktrees` worktree (see below), bump `version:`, CHANGELOG.
 2. Branch + PR in `flapperdeflipper/addons`, wait for the two checks, merge.
 3. CI builds and pushes `flapperdeflipper/addon-<name>:<version>` to Docker Hub.
-4. Update the add-on in the Home Assistant UI.
+4. Update the add-on in the Home Assistant UI (agent sessions die with the restart).
+
+## Add-on worktrees (/share/worktrees)
+
+Agent work on the addons repo happens in throwaway worktrees, never in the
+main checkout:
+
+    git -C /homeassistant/addons worktree add /share/worktrees/addons-N -b feature/<what> origin/master
+
+- **Naming** follows the existing entries: `addons`, `addons-2`, `addons-3`, …
+- **Branch from `origin/master`**, never local `master` — it lags behind.
+  `git fetch` over SSH fails in this container (no key); the origin refs stay
+  current anyway, and `gh api` can verify master when in doubt.
+- **Tests**: a fresh worktree has no `node_modules`; run
+  `npm ci --include=dev` — the container's `NODE_ENV=production` silently
+  skips devDependencies (vitest) otherwise.
+- **Cleanup after merge**: `git -C /homeassistant/addons worktree remove
+  /share/worktrees/addons-N` (add `--force` for untracked `node_modules`),
+  then `git branch -D feature/<what>` — plain `-d` refuses while local
+  master hasn't caught up.
 
 ## Secrets policy
 

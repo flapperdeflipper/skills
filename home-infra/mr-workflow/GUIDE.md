@@ -40,6 +40,9 @@ SSH remotes are for the human; scripted pushes always go via HTTPS + helper.
 2. Branch: `git fetch origin && git checkout -b <branch> origin/master`
    (unstaged changes carry over). Branch names follow repo precedent:
    `feature/<what>` / `fix/<what>` in addons, `add-<what>` in skills.
+   For the **addons** repo, do this inside a `/share/worktrees` worktree
+   branched from `origin/master` — the main checkout usually holds the
+   human's in-flight branch (see the map guide's worktree section).
 3. Stage **only intended paths** — `git add <path> …`, never `git add -A` or
    `git commit -a`: the home-assistant-config checkout always carries many
    unrelated dirty files that must stay out.

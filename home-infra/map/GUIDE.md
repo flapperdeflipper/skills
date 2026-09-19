@@ -66,6 +66,16 @@ main checkout:
   then `git branch -D feature/<what>` — plain `-d` refuses while local
   master hasn't caught up.
 
+## Agent scratchpad (/share/scratchpad)
+
+Agent documents (plans, handovers, research notes, reports) live under
+`/share/scratchpad/<agent>/<YYYY-MM-DD-task-slug>/` — never in the HA config
+repo. Worktrees are for code; the scratchpad is for documents. Isolation
+rules (own namespace only, one dated dir per task, everything else
+read-only, no cleanup without the human): `/share/scratchpad/README.md`.
+`opencode/imported/` holds the docs migrated from `/homeassistant/opencode/`
+when that directory was removed on 2026-09-20.
+
 ## Secrets policy
 
 No secret values in add-on options or config files. Add-on options either hold

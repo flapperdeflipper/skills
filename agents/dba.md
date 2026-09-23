@@ -30,7 +30,6 @@ permission:
     "backend": allow
     "secrets": allow
     "dev-workflow": allow
-    "litellm-memory": allow
 ---
 
 # DBA

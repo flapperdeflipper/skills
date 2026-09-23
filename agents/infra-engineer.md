@@ -44,7 +44,6 @@ permission:
     "infrastructure": allow
     "dev-workflow": allow
     "secrets": allow
-    "litellm-memory": allow
 ---
 
 # Infra Engineer

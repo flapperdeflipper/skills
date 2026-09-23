@@ -29,7 +29,6 @@ permission:
     "dev-workflow": allow
     "home-infra": allow
     "handoff": allow
-    "litellm-memory": allow
 ---
 
 # Manager

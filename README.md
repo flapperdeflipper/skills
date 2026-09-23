@@ -50,12 +50,13 @@ the repo keeps few of them. Related skills are folded into **hub skills**:
 | `operations` | sre-engineer, monitoring-expert |
 | `writing` | documentation, writing-for-agents, writing-skills, prompt-engineer |
 | `home-infra` | map, home-assistant-ops, litellm-gateway, mqtt-mcp, opencode-sessions, session-cleanup, mr-workflow |
+| `home-devices` | touchkio, ble-presence, appdaemon |
 | `offline-lab` | project, buildroot |
 
 Standalone skills: `security-audit` (vendored from
 [cloudflare/security-audit-skill](https://github.com/cloudflare/security-audit-skill),
 MIT; guidance mode by default, the six-phase audit lives in
-`references/FULL-AUDIT.md`), `secrets`, `litellm-memory`, `research`,
+`references/FULL-AUDIT.md`), `secrets`, `research`,
 `socrates`, `playwright-expert`, `wizard`. `grill-with-docs`, `handoff` and
 `improve-codebase-architecture` set `disable-model-invocation`, so they cost no
 resident context and stay `/commands`.

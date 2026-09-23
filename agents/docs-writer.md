@@ -27,7 +27,6 @@ permission:
     "writing": allow
     "software-design": allow
     "dev-workflow": allow
-    "litellm-memory": allow
 ---
 
 # Docs Writer

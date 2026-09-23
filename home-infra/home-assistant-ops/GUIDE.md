@@ -53,9 +53,11 @@ in ha_opencode — resolve secrets via a plugin instead (below).
 - The API key is injected at startup by `/data/.config/opencode/plugin/litellm-key.js`,
   which reads `litellm_ha_key` from `/homeassistant/secrets.yaml`. secrets.yaml
   stays the single source; rotating the key needs no opencode change.
-- Provider + plugin registration live in the `opencode_config` add-on option.
-  Changing models = update that option (complete set, v2 format), sync
-  `/data/.config/opencode/config.json` to match, restart opencode sessions.
+- Provider + plugin registration live in the config drop-ins
+  (`/addon_configs/4e94d283_ha_opencode/*.json`, deep-merged into
+  `/data/.config/opencode/config.json` at add-on start — see that folder's
+  README). Changing models = edit the drop-in, then regenerate the merged
+  file (see the litellm-gateway guide's zai section) and restart opencode.
 - Model aliases must match the litellm `model_list` in
   `/homeassistant/litellm/config.yaml` exactly.
 
@@ -83,5 +85,50 @@ frontmatter descriptions.
   from opencode (no `/addon_configs` access).
 - Zigbee runs on Zigbee2MQTT; renames must cascade via `zigporter`. Workflows
   live in the `home-assistant-zigbee-esphome` skill.
-- Entity-level gotchas (mqtt twins, spare phones) live in the opencode
-  decision notes, not here.
+- Entity-level gotchas: ESPHome conventions and the mqtt-discovery-off
+  guard live in `/homeassistant/esphome/AGENTS.md`; device knowledge (kiosk,
+  BLE presence, AppDaemon) in the `home-devices` skill. Decision notes were
+  retired 2026-09-20.
+
+## Supervisor quirks (HA Supervised 2026.09.2, 2026-09-19)
+
+- `POST /addons/4e94d283_ha_openchamber/options` rejects EVERY key with
+  "extra keys not allowed" — the Supervisor's validation schema for that one
+  add-on is empty (empty body `{}` validates; other add-ons validate fine).
+  Suspected metadata-cache corruption; also blocks changing
+  lan_allowed_remotes via UI/API.
+- `hab backup create` fails with `required key not provided at 'agent_ids'`
+  (hab bug) — use the Supervisor API or UI instead.
+- Automatic daily full backups DO exist (~05:40, 27 addons + ssl + share) —
+  the resolution issue `no_current_backup` is stale/misleading.
+
+## Python venvs
+
+Never create venvs inside `/share/syncthing/projects/*` — that tree is
+syncthing-shared across CPU architectures (x86_64 + ARM64); a venv there
+breaks the other machines. Use `/data/venvs/<project-name>`.
+
+## Agent image slimming (2026-09-22, agent-base 1.1.0)
+
+- agent-base carries a CURATED apt set: imagemagick AND ffmpeg are
+  deliberately kept; ~38 one-shot tools (awscli, nmap, rclone, cmake,
+  bats, …) were deliberately REMOVED — do not assume they exist, do not
+  casually re-add.
+- chromium is NOT in agent-base; only ha_opencode installs a chromium+fonts
+  layer for its MCP screenshot tool.
+- playwright-browser add-on (2026.09.21+): Debian chromium + nginx under s6,
+  built on base-debian:trixie — no Playwright FROM-line bumps; browser
+  updates ride Debian package updates via CalVer-dated rebuilds. Chromium
+  only (no Firefox/WebKit). MCP bridges connect over CDP.
+- Full report: `/share/scratchpad/opencode/2026-09-21-image-slimming/REPORT.md`
+
+## OpenChamber add-on: stopped
+
+The ha_openchamber add-on is deliberately stopped to save memory (2026-09-23);
+start it from the HA UI when the web UI is needed, and stop it after. Its
+agent-MCP plugin is removed from opencode, so sessions no longer carry
+openchamber tools. Known issues if it comes back: `opencode serve` leaks
+EventTarget listeners per web-client reconnect (upstream #28492/#46035,
+unfixed in 1.18.31 — watch #46035 and bump the certified pin when fixed);
+Supervisor REST options-writes are broken for it (empty validation schema,
+see quirks above). Build history: PRs #116/#118/#122/#130.

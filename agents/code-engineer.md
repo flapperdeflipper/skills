@@ -47,7 +47,6 @@ permission:
     "languages": allow
     "dev-workflow": allow
     "software-design": allow
-    "litellm-memory": allow
     "backend": allow
 ---
 

@@ -39,7 +39,6 @@ permission:
     "debugging": allow
     "research": allow
     "dev-workflow": allow
-    "litellm-memory": allow
 ---
 
 # Debug & Research

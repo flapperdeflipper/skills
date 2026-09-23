@@ -73,3 +73,66 @@ refuses to store a token while GH_TOKEN is in its own environment):
   never force-push.
 - Known quirk: `gh pr edit` fails here (GraphQL "Projects (classic)" error) —
   use the REST API (`gh api repos/{owner}/{repo}/pulls/N -X PATCH …`).
+
+## Worktrees: one rule, all repos
+
+NEVER work directly in a shared checkout (`/homeassistant/addons`,
+`/homeassistant/skills`, `/share/syncthing/projects/*`) — multiple agents and
+the human work there concurrently, and a `git add -A` in a shared tree has
+already swept another agent's uncommitted WIP into a release once
+(slopclanker 0.6.0). Every agent works in its own worktree, branched fresh
+from `origin/master`, stage **explicit paths only**, and force-push own PR
+branches only with `--force-with-lease=refs/heads/<branch>:<expected-sha>`
+(URL pushes cannot resolve remote-tracking refs — plain `--force-with-lease`
+fails with "stale info").
+
+- Addons worktrees live in `/share/worktrees` (`addons`, `addons-2`, …) — see
+  the map guide for add/remove/cleanup.
+- Older `/data/worktrees/addons/<branch>` worktrees also exist; prefer
+  `/share/worktrees`.
+- `/homeassistant` (config repo) is the one exception: work on local `master`
+  directly, but never `git add -A` there either — its working tree always
+  carries unrelated dirty files.
+
+**Before any push, verify the workdir**: run `git rev-parse --show-toplevel`
+and check it is the worktree/repo you intend. On 2026-09-19 a push was run
+with workdir `/homeassistant` instead of the addons worktree, pushing the
+private config repo's HEAD to a public addons branch (deleted within minutes
+via API; see the 2026-09-23 memory-value scratchpad report for the incident).
+
+## Release pipeline quirks
+
+1. Never create the GitHub release manually — the Release workflow **skips**
+   if the tag's release already exists.
+2. After a squash-merge, follow-up branches must rebase with
+   `git rebase --onto origin/master <last-old-commit>`; never push during a
+   conflicted rebase.
+3. GitGuardian flags dummy username+password JSON pairs in tests — assemble
+   fixture passwords instead of literal pairs.
+4. GitHub pull_request CI events sometimes lag; merging on a green local gate
+   is safe (master CI re-runs everything).
+5. Addon base-image bumps are manual: pin `FROM`, bump `config.yaml`,
+   CHANGELOG, PR; when a PR goes "out of date", update the branch then merge.
+6. Supervisor store updates: `POST /store/reload` then
+   `addons/{slug}/update`; the options body must be `{"options":{...}}`;
+   partial backup = `POST /backups/new/partial`; supervisor error bodies can
+   echo option values back — never send secret values there.
+7. HA ingress: `ingress: true` without `ingress_port` assigns a dynamic port —
+   declare it explicitly.
+8. UI debugging: check ADDON LOGS first ("no request reached the server" is
+   client-side); a pre-selected `<option>` fires no change event (empty-state
+   create menus need placeholders); serve SPA index.html with
+   `Cache-Control: no-cache`.
+
+## Dependency automation
+
+Dependabot (weekly, Mondays) was chosen over Renovate on 2026-09-05 for
+`flapperdeflipper/{addons,skills,home-assistant-config}`; update PRs merge
+manually — no automerge. Versioning: add-on versions are plain semver bumps
+of our own line — never follow upstream versions, never `-N` suffixes. Rollup
+merges of several Dependabot PRs are fine: combine on one branch, add version
+bumps + CHANGELOG entries, squash-merge, close superseded PRs. Gotchas:
+home-assistant/builder actions after 2026.02.1 reference unpublished builder
+images (ignore rule lives in `addons/.github/dependabot.yml`); pushes to a PR
+branch's dependabot files trigger a config-validating workflow; ARG-pins
+(NODE_VERSION, BUILD_FROM, …) stay manual.

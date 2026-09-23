@@ -52,7 +52,6 @@ permission:
     "secrets": allow
     "wizard": allow
     "dev-workflow": allow
-    "litellm-memory": allow
 ---
 
 # Senior Linux Engineer

@@ -36,17 +36,17 @@ Hard rules baked into the tool — do not work around them:
 2. **Triage**: for each eligible session that had real work (`tool_calls` or
    several messages), read it with `sessions_get` (or the export-friendly
    transcript via the API). Subagent one-shots and trivial chats need nothing.
-3. **Preserve decisions** — anything that outlives the session:
-   - Cross-agent decisions, agent conventions and preferences → **LiteLLM
-     memory** (`opencode:*` keys) — see the litellm-memory skill.
-   - Home Assistant installation decisions → HA **decision notes**
-     (`remember_decision`, with user approval) — see the AGENTS.md rules.
-   Nothing durable found → say so explicitly in the final report.
+3. **Preserve decisions** — anything that outlives the session goes to
+   **markdown** (policy since 2026-09-23; LiteLLM memory and HA decision
+   notes are retired): critical constraints → `/homeassistant/AGENTS.local.md`
+   guardrails; topic knowledge → the matching skill guide in the skills repo;
+   one-off history → the scratchpad report for the task. Nothing durable
+   found → say so explicitly in the final report.
 4. **Apply**: `session-cleanup --apply --keep <your ses_ID>` (add
    `--only ses_ID` to prune a subset). Deleting is irreversible; exports land
    in the session-archive directory.
-5. **Report back**: what was deleted (count + reasons), what was stored where
-   (memory keys or decision-note links), where the exports are.
+5. **Report back**: what was deleted (count + reasons), what was stored
+   where (file paths), where the exports are.
 
 ## Safety
 

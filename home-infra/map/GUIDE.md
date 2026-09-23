@@ -30,11 +30,21 @@ skills hub) · `searxng_with_mcp` · `mosquitto` · `playwright-browser` ·
   (`/mcp_servers/litellm_mcp`): memory_get/set/list/delete + registry_list,
   spawned by the proxy; `LITELLM_MEMORY_KEY` (secret `litellm_memory_key`)
   scopes it.
-- **litellm-memory in opencode** — plugin
-  `/data/.config/opencode/plugin/litellm-memory-mcp.js`: wires the memory
-  tools into opencode sessions by pointing an MCP client at the litellm
-  add-on's standalone memory server (:4001, bearer key from hasecret;
-  never written to any config file).
+- **agent-base** — `flapperdeflipper/agent-base` (checkout
+  `/homeassistant/agent-base`, nested repo like addons/skills): the shared
+  base image `ghcr.io/flapperdeflipper/agent-base:<semver>` (cosign-signed)
+  that ha_opencode, ha_openchamber and terminal build FROM via an
+  ARG-indirected pin (invisible to dependabot). Carries Node 24, certified
+  opencode, hab, zigporter, yq, op CLI, cosign, and a skills snapshot under
+  /opt/skills (SKILLS_REF pin, `skills-update` to refresh). Update flow: tag
+  vX.Y.Z in agent-base -> CI publishes image -> update-addons.yml opens an
+  automated roll-up PR in flapperdeflipper/addons -> merge -> rebuild add-ons.
+  Master protected by contract tests + build.
+- **litellm-memory in opencode** — REMOVED 2026-09-23: the plugin and the
+  opencode memory keys were retired in favour of markdown (skills +
+  AGENTS.local.md). The proxy-side memory API still exists for other agents;
+  migration report and full store backup:
+  `/share/scratchpad/opencode/2026-09-23-memory-value-analysis/`.
 - **hasecret** — `/homeassistant/bin/hasecret`, the only way to touch
   `/homeassistant/secrets.yaml` (see the secrets skill).
 - **OpenChamber** — browser UI for OpenCode, pinned and Ingress-patched in the
@@ -88,6 +98,7 @@ at start. Tokens are never logged. Tooling and rules: the `secrets` skill.
 - LiteLLM proxy: `http://10.60.0.3:4000` (internal), `https://llm.pl4.dev` (VPN)
 - LiteLLM MCP gateway: `/mcp` on the proxy (memory/search/docs tools, bearer auth)
 - LiteLLM memory API: `/v1/memory` on the proxy — key `litellm_memory_key`
+  (retired for opencode use 2026-09-23; still available to other agents)
 - Skills hub: `GET /public/skill_hub` on the proxy
 - Redis: `10.20.0.2:6379` (auth) — litellm cache
 - PostgreSQL: external, via `litellm_database_dsn` — litellm DB (memory, keys, spend)

@@ -33,7 +33,6 @@ permission:
     "offline-lab": allow
     "languages": allow
     "dev-workflow": allow
-    "litellm-memory": allow
 ---
 
 # Embedded Linux Engineer

@@ -2,7 +2,7 @@
 # Merge requests
 
 MRs are GitHub PRs. They are created **only on explicit user request** —
-AGENTS.md forbids unsolicited version control. Never push to `master`
+AGENTS.md forbids unsolicited version control. Never push to `main`
 directly; always a feature branch + PR. Merging is the user's job unless they
 explicitly ask otherwise.
 
@@ -44,11 +44,10 @@ refuses to store a token while GH_TOKEN is in its own environment):
 2. Branch: `git fetch origin && git checkout -b <branch> origin/main`
    (unstaged changes carry over). Branch names follow repo precedent:
    `feature/<what>` / `fix/<what>` in addons, `add-<what>` in skills.
-   **Default branch differs per repo (since 2026-09-25): the skills repo
-   uses `main` (the LiteLLM skills hub hardcodes `tree/main` links);
-   addons and home-assistant-config still use `master`.**
+   **Every flapperdeflipper repo uses `main` (renamed from `master` on
+   2026-09-25; old `master` links redirect).**
    For the **addons** repo, work in a worktree under `/data/worktrees/addons/`
-   or `/share/worktrees` branched from `origin/master` — the main checkout
+   or `/share/worktrees` branched from `origin/main` — the main checkout
    may hold the human's in-flight branch.
 3. Stage **only intended paths** — `git add <path> …`, never `git add -A` or
    `git commit -a`: the home-assistant-config checkout always carries many
@@ -57,12 +56,12 @@ refuses to store a token while GH_TOKEN is in its own environment):
    Message style: addons — `ha_opencode: bundle rsync (2.6.2)` i.e.
    `<addon>: <what> (<version>)`; skills — plain imperative subject.
 5. `git push origin <branch>`
-6. `gh pr create --repo flapperdeflipper/<repo> --base master --head <branch> \
+6. `gh pr create --repo flapperdeflipper/<repo> --base main --head <branch> \
    --title "<title>" --body "<description>"`
-7. Report the PR URL and switch the checkout back to `master` (the changes
-   live on the branch; local master catches up when the PR is merged —
+7. Report the PR URL and switch the checkout back to `main` (the changes
+   live on the branch; local main catches up when the PR is merged —
    remind the user to merge **before** rebuilding an add-on or registering
-   hub skills that point at master paths).
+   hub skills that point at main paths).
 
 ## Hard rules
 
@@ -84,7 +83,7 @@ NEVER work directly in a shared checkout (`/homeassistant/addons`,
 the human work there concurrently, and a `git add -A` in a shared tree has
 already swept another agent's uncommitted WIP into a release once
 (slopclanker 0.6.0). Every agent works in its own worktree, branched fresh
-from `origin/master`, stage **explicit paths only**, and force-push own PR
+from `origin/main`, stage **explicit paths only**, and force-push own PR
 branches only with `--force-with-lease=refs/heads/<branch>:<expected-sha>`
 (URL pushes cannot resolve remote-tracking refs — plain `--force-with-lease`
 fails with "stale info").
@@ -93,7 +92,7 @@ fails with "stale info").
   the map guide for add/remove/cleanup.
 - Older `/data/worktrees/addons/<branch>` worktrees also exist; prefer
   `/share/worktrees`.
-- `/homeassistant` (config repo) is the one exception: work on local `master`
+- `/homeassistant` (config repo) is the one exception: work on local `main`
   directly, but never `git add -A` there either — its working tree always
   carries unrelated dirty files.
 
@@ -108,12 +107,12 @@ via API; see the 2026-09-23 memory-value scratchpad report for the incident).
 1. Never create the GitHub release manually — the Release workflow **skips**
    if the tag's release already exists.
 2. After a squash-merge, follow-up branches must rebase with
-   `git rebase --onto origin/master <last-old-commit>`; never push during a
+   `git rebase --onto origin/main <last-old-commit>`; never push during a
    conflicted rebase.
 3. GitGuardian flags dummy username+password JSON pairs in tests — assemble
    fixture passwords instead of literal pairs.
 4. GitHub pull_request CI events sometimes lag; merging on a green local gate
-   is safe (master CI re-runs everything).
+   is safe (main CI re-runs everything).
 5. Addon base-image bumps are manual: pin `FROM`, bump `config.yaml`,
    CHANGELOG, PR; when a PR goes "out of date", update the branch then merge.
 6. Supervisor store updates: `POST /store/reload` then

@@ -41,9 +41,12 @@ refuses to store a token while GH_TOKEN is in its own environment):
 
 1. Confirm scope: which repo, which files, what the MR is for. If the working
    tree holds changes the user did not describe, list them and ask.
-2. Branch: `git fetch origin && git checkout -b <branch> origin/master`
+2. Branch: `git fetch origin && git checkout -b <branch> origin/main`
    (unstaged changes carry over). Branch names follow repo precedent:
    `feature/<what>` / `fix/<what>` in addons, `add-<what>` in skills.
+   **Default branch differs per repo (since 2026-09-25): the skills repo
+   uses `main` (the LiteLLM skills hub hardcodes `tree/main` links);
+   addons and home-assistant-config still use `master`.**
    For the **addons** repo, work in a worktree under `/data/worktrees/addons/`
    or `/share/worktrees` branched from `origin/master` — the main checkout
    may hold the human's in-flight branch.

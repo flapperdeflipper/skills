@@ -24,7 +24,7 @@ the delegation and context model works.
   `agents/` is not published as a skill
 - CI (`verify-skills`) checks frontmatter against the schemas, the context
   budget and hub layout, shell script syntax and shellcheck, and runs the
-  `security-audit` validator tests, on every PR and push to master
+  `security-audit` validator tests, on every PR and push to main
 - Synced from local dotfiles; this repo is the canonical published source
 
 ## Keeping context small

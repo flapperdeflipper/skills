@@ -30,9 +30,11 @@ playwright/victoriametrics/homeassistant forwarder/ha-native) ·
   (`mcp_http_enabled` + bearer token) for sibling add-ons such as the LiteLLM
   MCP gateway. Ships with `hab` and `zigporter` companion CLIs.
 - **litellm_mcp** — Python MCP package in the litellm add-on image
-  (`/mcp_servers/litellm_mcp`): memory_get/set/list/delete + registry_list,
-  spawned by the proxy; `LITELLM_MEMORY_KEY` (secret `litellm_memory_key`)
-  scopes it.
+  (`/mcp_servers/litellm_mcp`): memory_search/tags/get/set/list/delete +
+  registry_list (search + tags since 1.100.0), standalone on :4001;
+  `LITELLM_MEMORY_KEY` (secret `litellm_memory_key`) scopes it. The same
+  tool set (scoring kept in parity) is served over HTTP by the mcp-hub
+  `memory` server — the path agents actually use.
 - **agent-base** — `flapperdeflipper/agent-base` (checkout
   `/homeassistant/agent-base`, nested repo like addons/skills): the shared
   base image `ghcr.io/flapperdeflipper/agent-base:<semver>` (cosign-signed)
@@ -43,11 +45,15 @@ playwright/victoriametrics/homeassistant forwarder/ha-native) ·
   vX.Y.Z in agent-base -> CI publishes image -> update-addons.yml opens an
   automated roll-up PR in flapperdeflipper/addons -> merge -> rebuild add-ons.
   Master protected by contract tests + build.
-- **litellm-memory in opencode** — REMOVED 2026-09-23: the plugin and the
-  opencode memory keys were retired in favour of markdown (skills +
-  AGENTS.local.md). The proxy-side memory API still exists for other agents;
-  migration report and full store backup:
-  `/share/scratchpad/opencode/2026-09-23-memory-value-analysis/`.
+- **memory, search-first (2026-09-26)** — the `/v1/memory` store is back
+  for opencode via the mcp-hub `memory` server (mcp-hub ≥ 1.2.0) on the
+  LiteLLM gateway: `memory_search` (ranked keyword/tag matches with
+  snippets) + `memory_tags` (vocabulary digest) fix the recall failure that
+  ended the 2026-09-23 retirement (write-mostly archive; report and store
+  backup: `/share/scratchpad/opencode/2026-09-23-memory-value-analysis/`).
+  The `memory-nudge.js` opencode plugin appends a once-per-session pointer
+  part on the first user message. Markdown still owns durable knowledge;
+  memory holds volatile facts only.
 - **hasecret** — `/homeassistant/bin/hasecret`, the only way to touch
   `/homeassistant/secrets.yaml` (see the secrets skill).
 - **OpenChamber** — browser UI for OpenCode, pinned and Ingress-patched in the
@@ -108,8 +114,9 @@ at start. Tokens are never logged. Tooling and rules: the `secrets` skill.
   litellm-gateway guide). ha_opencode ≥ 3.1.0 does this via
   `mcp_litellm_url` (takes precedence over `mcp_hub_url`, whose trailing
   `/mcp` gotcha no longer applies to clients)
-- LiteLLM memory API: `/v1/memory` on the proxy — key `litellm_memory_key`
-  (retired for opencode use 2026-09-23; still available to other agents)
+- LiteLLM memory API: `/v1/memory` on the proxy — key `litellm_memory_key`;
+  served to agents as the mcp-hub `memory` MCP server (search-first, see the
+  litellm-gateway guide)
 - Skills hub: `GET /public/skill_hub` on the proxy
 - Redis: `10.20.0.2:6379` (auth) — litellm cache
 - PostgreSQL: external, via `litellm_database_dsn` — litellm DB (memory, keys, spend)

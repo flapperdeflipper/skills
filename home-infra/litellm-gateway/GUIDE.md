@@ -18,7 +18,7 @@ values in secrets.yaml:
 
 | Toolset | Secret | Sees |
 |---|---|---|
-| hass (HA box only) | `litellm_hass_key` | all 6 servers (133 tools) |
+| hass (HA box only) | `litellm_hass_key` | all 7 servers (139 tools) |
 | home | `litellm_home_key` | playwright + searxng + context7 (29 tools) + all models |
 | remote | `litellm_remote_key` | playwright + searxng + context7 (29 tools) + all models |
 
@@ -37,7 +37,7 @@ remain — as upstreams for the gateway, not for clients.
 | `victoriametrics` | PromQL tools against Victoria Metrics (via mcp-hub) |
 | `searxng` | web + code search (direct, :8086) |
 | `context7` | up-to-date library documentation (external, token server-side) |
-| `litellm_mcp` (memory) | still on the proxy for other agents; retired for opencode 2026-09-23 |
+| `memory` | LiteLLM `/v1/memory` store via mcp-hub: `memory_search/tags/get/set/list/delete` (search-first) |
 
 Tool names arrive namespaced per server (`litellm_homeassistant-*`,
 `litellm_searxng-*`, …).
@@ -131,11 +131,36 @@ tool-policy) were removed from `/homeassistant/litellm/config.yaml` on
 without asking. The DB tool-policy table (152 tools) still exists but is
 inert without the guardrail.
 
-## Memory store: retired from opencode (2026-09-23)
+## Memory: search-first (2026-09-26; supersedes the 2026-09-23 retirement)
 
-The LiteLLM memory API (`/v1/memory`) and its MCP tools still exist on the
-proxy for other agents, but opencode no longer wires them in and the opencode
-keys were migrated to markdown (skills + AGENTS.local.md) — see
-`/share/scratchpad/opencode/2026-09-23-memory-value-analysis/` for the
-migration report and the full store backup. Don't write new opencode memory
-keys; put durable knowledge in the skills repo or AGENTS.local.md instead.
+The `/v1/memory` store is served to agents through mcp-hub's `memory`
+server (mcp-hub ≥ 1.2.0; the `memory_api_key` option holds a
+`!secret litellm_memory_key` value). Registered on the gateway as `memory`
+in `litellm/config.yaml` — after editing that block, `touch` the config
+file: the in-process config watcher picks it up without a proxy restart
+(a restart also works). Do NOT register it via POST `/v1/mcp/server`: the
+API row and the config-synced row collide (symptom: tool listing POSTs to
+the hub root with no auth) — config.yaml is the single source. Toolset
+allowlists are updated by NAME via `/key/update`
+(`object_permission.mcp_servers`).
+
+Tools: `memory_search(query, tag, limit)` — ranked matches with ~160-char
+snippets, never full values; `memory_tags()` — tag vocabulary digest;
+`memory_get/set/list/delete` — set takes `tags` (metadata preserved on
+value-only updates). Scoring (exact key-segment > exact tag > substring
+tag > value substring) is kept in parity between the hub's JS module and
+the Python `litellm_mcp` package on :4001.
+
+Discipline (AGENTS.local.md carries the policy): markdown owns durable
+knowledge; memory holds small volatile facts only — one fact per key, the
+key names the fact, tags required, documented-elsewhere → nowhere. The
+`memory-nudge.js` opencode plugin (auto-loaded from `plugin/`) runs
+`memory_search` on each session's first substantive message and appends a
+one-part pointer (`[memory nudge] N possibly relevant memories…`). Nudge
+auth: `litellm_hass_key` via hasecret, `LITELLM_INTERNAL_URL` overridable.
+
+Debugging notes: `/healthz` on the hub shows per-server state (a `failed`
+memory server usually means `memory_api_key` didn't resolve); LiteLLM
+Redis pubsub config-sync is BROKEN on this install (`unknown command
+'PUBLISH'`) so DB-side MCP changes never hot-load — config-watch touches
+and restarts are the reliable levers.

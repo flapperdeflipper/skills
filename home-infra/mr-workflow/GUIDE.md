@@ -113,8 +113,11 @@ via API; see the 2026-09-23 memory-value scratchpad report for the incident).
    fixture passwords instead of literal pairs.
 4. GitHub pull_request CI events sometimes lag; merging on a green local gate
    is safe (main CI re-runs everything).
-5. Addon base-image bumps are manual: pin `FROM`, bump `config.yaml`,
-   CHANGELOG, PR; when a PR goes "out of date", update the branch then merge.
+5. Addon base-image bumps are automated (since 2026-09-25): tag `vX.Y.Z` in
+   agent-base -> CI builds/signs the image and publishes the GitHub release ->
+   `update-addons.yml` opens a roll-up PR in addons (AGENT_BASE Dockerfile ARG,
+   `build.yaml` `args` + `build_from`, patch version bumps, changelogs). Merge
+   when green; update the branch first when a PR goes "out of date".
 6. Supervisor store updates: `POST /store/reload` then
    `addons/{slug}/update`; the options body must be `{"options":{...}}`;
    partial backup = `POST /backups/new/partial`; supervisor error bodies can

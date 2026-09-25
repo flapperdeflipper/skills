@@ -1,26 +1,46 @@
 <!-- source: flapperdeflipper, MIT -->
-## One endpoint for everything
+## One endpoint, three toolsets (2026-09-25)
 
-All agents (opencode, Claude Code, anything MCP-capable) use a single MCP
-endpoint instead of registering servers individually:
+Every self-hosted MCP server is registered **on the LiteLLM proxy** and
+clients add a single MCP entry: `https://llm.pl4.dev/mcp` (internal
+`http://10.60.0.3:4000/mcp`) with a Bearer toolset key. `/v1` (models) and
+`/mcp` (tools) bypass the nginx/vouch OAuth layer, which only guards the
+human UI — agents never see OAuth.
 
-- Internal (HA network): `http://10.60.0.3:4000/mcp`
-- External (VPN, SSO-protected for humans): `https://llm.pl4.dev/mcp`
-- Auth: `Authorization: Bearer <litellm virtual key>` — never SSO for agents
+Registered on the gateway (config.yaml `mcp_servers:`, upstream auth
+server-side): homeassistant (via mcp-hub → ha_opencode:8927, needs mcp-hub
+≥ 1.1.1), ha_native, victoriametrics, playwright (all via mcp-hub :8930),
+searxng (:8086), context7 (external, token server-side). Server names must
+not contain `-` (LiteLLM rejects them).
+
+Toolsets = virtual keys with `object_permission.mcp_servers` allowlists,
+values in secrets.yaml:
+
+| Toolset | Secret | Sees |
+|---|---|---|
+| hass (HA box only) | `litellm_hass_key` | all 6 servers (133 tools) |
+| home | `litellm_home_key` | playwright + searxng + context7 (29 tools) + all models |
+| remote | `litellm_remote_key` | playwright + searxng + context7 (29 tools) + all models |
+
+opencode on the HA box wires this via ha_opencode ≥ 3.1.0
+(`mcp_litellm_url`, key env `LITELLM_HASS_KEY`); distributed configs live in
+`/share/syncthing/media/opencode/`. The mcp-hub (:8930) and :8927 endpoints
+remain — as upstreams for the gateway, not for clients.
 
 ## Registered servers and aliases
 
-| Alias | Server | Provides |
-|-------|--------|----------|
-| `memory` | `litellm_mcp` | memory_get/set/list/delete + registry_list discovery |
-| `search` | `searxng` | web + GitHub code search (PAT-authenticated) |
-| `docs` | `context7` | up-to-date library documentation |
-| — | `playwright` | browser automation over CDP (endpoint via `PLAYWRIGHT_CDP_ENDPOINT` env var) |
-| — | `victoriametrics` | PromQL queries against Victoria Metrics (`prometheus-mcp-server`, basic auth from secrets) |
-| — | `homeassistant` | full ha-mcp-server (65 tools: state, control, safe config writes, supervisor, ESPHome/zigporter/hab) served by the opencode add-on over HTTP at 10.20.0.3:8927 (stateless, bearer token) |
-| — | `homeassistant_native` | curated Assist/entity-control tools straight from Core's own MCP endpoint |
+| Server | Provides |
+|--------|----------|
+| `homeassistant` | full ha-mcp-server (73 tools) via mcp-hub → ha_opencode:8927 |
+| `ha_native` | curated Assist/entity-control tools from Core's own MCP endpoint (via mcp-hub) |
+| `playwright` | shared Playwright browser automation (via mcp-hub, CDP to playwright-browser) |
+| `victoriametrics` | PromQL tools against Victoria Metrics (via mcp-hub) |
+| `searxng` | web + code search (direct, :8086) |
+| `context7` | up-to-date library documentation (external, token server-side) |
+| `litellm_mcp` (memory) | still on the proxy for other agents; retired for opencode 2026-09-23 |
 
-Tool names arrive namespaced (`litellm_mcp-memory_get`, `searxng-*`, …).
+Tool names arrive namespaced per server (`litellm_homeassistant-*`,
+`litellm_searxng-*`, …).
 
 ## Lazy loading (tool-search keys)
 

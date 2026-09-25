@@ -18,8 +18,10 @@ on the human's in-flight feature branch: never branch, commit or rebase there.
 
 `ha_opencode` (this add-on: certified OpenCode + OpenChamber web UI +
 ha-mcp-server + hasecret + op CLI) · `litellm` (LLM proxy, MCP gateway,
-skills hub) · `searxng_with_mcp` · `mosquitto` · `playwright-browser` ·
-`terminal` · `isponsorblocktv`.
+skills hub) · `mcp-hub` (shared MCP servers over HTTP, port 8930 —
+playwright/victoriametrics/homeassistant forwarder/ha-native) ·
+`searxng_with_mcp` · `mosquitto` · `playwright-browser` · `terminal` ·
+`isponsorblocktv`.
 
 ## Shared components
 
@@ -98,6 +100,14 @@ at start. Tokens are never logged. Tooling and rules: the `secrets` skill.
 
 - LiteLLM proxy: `http://10.60.0.3:4000` (internal), `https://llm.pl4.dev` (VPN)
 - LiteLLM MCP gateway: `/mcp` on the proxy (memory/search/docs tools, bearer auth)
+- MCP Hub: `http://10.60.0.3:8930/mcp/<id>` (playwright, victoriametrics,
+  homeassistant → ha_opencode:8927, ha-native) — bearer `MCP_HUB_TOKEN`.
+  Since 2026-09-25 the hub is an *upstream* of the LiteLLM MCP gateway,
+  not a client entrypoint: all MCP servers are registered in litellm
+  `mcp_servers:` and clients use one URL + a toolset key (see the
+  litellm-gateway guide). ha_opencode ≥ 3.1.0 does this via
+  `mcp_litellm_url` (takes precedence over `mcp_hub_url`, whose trailing
+  `/mcp` gotcha no longer applies to clients)
 - LiteLLM memory API: `/v1/memory` on the proxy — key `litellm_memory_key`
   (retired for opencode use 2026-09-23; still available to other agents)
 - Skills hub: `GET /public/skill_hub` on the proxy

@@ -86,6 +86,31 @@ come to ~1.3k (`verify_skills.py` prints the live number). The bodies total
 ~380k, and which of them load is still the whole game: a hub router costs
 ~500 tokens, and only the one guide it routes to loads after that.
 
+## LiteLLM agent registry
+
+`scripts/sync-agent-hub.sh` (repo root) mirrors this directory into the
+LiteLLM A2A agent registry (`/v1/agents`): one agent card per `.md` file,
+with the frontmatter description and the first `# ` heading as display
+name. Cards carry `provider.organization: flapperdeflipper`; entries
+without that marker are never updated or pruned. The server normalizes
+cards (v1.100.0 rewrites `skills` to a default `chat` skill and fills
+version/capabilities/security itself), so the sync manages only the
+fields LiteLLM preserves — name, description, provider.
+
+    scripts/sync-agent-hub.sh                  # dry run
+    scripts/sync-agent-hub.sh --apply          # POST new, PUT changed
+    scripts/sync-agent-hub.sh --apply --prune  # also delete removed agents
+
+Run it from the HA box via `hasecret run KEY=litellm_master_key --` (or set
+`LITELLM_MASTER_KEY` yourself). Re-run after adding an agent or changing a
+description/allowlist — nothing propagates automatically.
+
+**Cards are metadata only.** LiteLLM proxies A2A invocations to a live
+server at the card's URL; no such server exists for these agents. Until one
+does, registry entries are discovery/hub visibility — calling
+`a2a/<agent-name>` against the gateway returns an error, not a specialist.
+The opencode agents remain the real executors.
+
 ## Writing a new agent
 
 - `description` is what the manager reads to decide what to delegate. Describe

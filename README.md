@@ -22,6 +22,9 @@ the delegation and context model works.
 - `scripts/sync-skill-hub.sh` - registers/updates skills in the LiteLLM hub
   (dry-run by default, `--apply` to execute); it globs `*/SKILL.md`, so
   `agents/` is not published as a skill
+- `scripts/sync-agent-hub.sh` - registers/updates the agents in `agents/` in
+  the LiteLLM A2A agent registry (dry-run by default, `--apply` to execute,
+  `--prune` removes registry entries that left the repo)
 - CI (`verify-skills`) checks frontmatter against the schemas, the context
   budget and hub layout, shell script syntax and shellcheck, and runs the
   `security-audit` validator tests, on every PR and push to main

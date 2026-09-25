@@ -131,13 +131,17 @@ via API; see the 2026-09-23 memory-value scratchpad report for the incident).
 
 ## Dependency automation
 
-Dependabot (weekly, Mondays) was chosen over Renovate on 2026-09-05 for
-`flapperdeflipper/{addons,skills,home-assistant-config}`; update PRs merge
-manually — no automerge. Versioning: add-on versions are plain semver bumps
-of our own line — never follow upstream versions, never `-N` suffixes. Rollup
-merges of several Dependabot PRs are fine: combine on one branch, add version
-bumps + CHANGELOG entries, squash-merge, close superseded PRs. Gotchas:
-home-assistant/builder actions after 2026.02.1 reference unpublished builder
-images (ignore rule lives in `addons/.github/dependabot.yml`); pushes to a PR
-branch's dependabot files trigger a config-validating workflow; ARG-pins
-(NODE_VERSION, BUILD_FROM, …) stay manual.
+Org-wide Renovate (since 2026-09-26) runs daily from the private
+`flapperdeflipper/renovate` repo (self-hosted, GitHub Actions) covering
+`{addons, agent-base, components, skills}`; Dependabot and agent-base's
+update-addons roll-up are retired. Update PRs merge manually — no automerge.
+Renovate's post-upgrade task (`scripts/renovate-post-upgrade.sh` in addons)
+already bumps config.yaml versions and CHANGELOG entries per repo
+convention, including CalVer (playwright-browser) and date.N (mosquitto)
+schemes — verify, don't re-add. Versioning: add-on versions are plain semver
+bumps of our own line — never follow upstream versions, never `-N` suffixes.
+Gotchas: home-assistant/builder actions after 2026.02.1 reference unpublished
+builder images (allowedVersions rule lives in the renovate repo's
+`presets/default.json5`); agent-base release pings renovate via
+repository_dispatch (`RENOVATE_DISPATCH_TOKEN` secret in agent-base);
+`RENOVATE_TOKEN` (dedicated low-scope PAT) lives in the renovate repo.

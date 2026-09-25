@@ -42,9 +42,12 @@ playwright/victoriametrics/homeassistant forwarder/ha-native) ·
   ARG-indirected pin (invisible to dependabot). Carries Node 24, certified
   opencode, hab, zigporter, yq, op CLI, cosign, and a skills snapshot under
   /opt/skills (SKILLS_REF pin, `skills-update` to refresh). Update flow: tag
-  vX.Y.Z in agent-base -> CI publishes image -> update-addons.yml opens an
-  automated roll-up PR in flapperdeflipper/addons -> merge -> rebuild add-ons.
-  Master protected by contract tests + build.
+  vX.Y.Z in agent-base -> CI publishes image -> trigger-renovate.yml pings
+  flapperdeflipper/renovate (repository_dispatch) -> Renovate PRs in
+  flapperdeflipper/addons repin AGENT_BASE and bump config.yaml versions +
+  changelogs (post-upgrade task) -> merge -> rebuild add-ons. Org-wide
+  dependency updates run daily from flapperdeflipper/renovate (self-hosted
+  Renovate; replaces Dependabot). Main protected by contract tests + build.
 - **memory, search-first (2026-09-26)** — the `/v1/memory` store is back
   for opencode via the mcp-hub `memory` server (mcp-hub ≥ 1.2.0) on the
   LiteLLM gateway: `memory_search` (ranked keyword/tag matches with

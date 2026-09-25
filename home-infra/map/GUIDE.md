@@ -5,6 +5,7 @@
 |------|-------|
 | `flapperdeflipper/addons` | All Home Assistant add-on sources. `builder.yml` CI builds changed add-ons on merge to master and publishes to Docker Hub `flapperdeflipper/addon-*`. Master is protected: changes go through PRs (2 required checks). |
 | `flapperdeflipper/skills` | Agent skills. Canonical working copy: `/homeassistant/skills` (self-contained git repo, ignored by the HA config repo). Published to the LiteLLM skills gateway (`GET /public/skill_hub`) from GitHub. The copy sessions load, `/homeassistant/.opencode/skills/*`, is a tree of symlinks into the repo — editing the repo file updates both. |
+| `flapperdeflipper/appdaemon-apps` | AppDaemon apps + config (private, still on `master`). Source of truth; agent checkout `/share/worktrees/appdaemon-apps`. Deployed copy `/addon_configs/a0d7b954_appdaemon` via `git archive master \| tar -x -C` overlay — apps hot-reload, `appdaemon.yaml` needs an add-on restart. AD quirks and landmines: the `home-devices` appdaemon guide. |
 | dotfiles (`/share/syncthing/dotfiles/profile`) | Per-machine agent config synced via syncthing: `.agents/`, `.claude/`, `.config/opencode/`, `.pi/agent/`. Skills there are the upstream source of the skills repo. |
 
 `/homeassistant/addons/` is the **deployed copy** of the add-on sources; the

@@ -136,9 +136,10 @@ inert without the guardrail.
 The `/v1/memory` store is served to agents through mcp-hub's `memory`
 server (mcp-hub ≥ 1.2.0; the `memory_api_key` option holds a
 `!secret litellm_memory_key` value). Registered on the gateway as `memory`
-in `litellm/config.yaml` — after editing that block, `touch` the config
-file: the in-process config watcher picks it up without a proxy restart
-(a restart also works). Do NOT register it via POST `/v1/mcp/server`: the
+in `litellm/config.yaml` — after editing that block, restart the proxy
+to load it: an mtime `touch` triggers nothing (no inotify path reaches
+the proxy through the docker/union-fs boundary; verified 2026-09-26). Do
+NOT register it via POST `/v1/mcp/server`: the
 API row and the config-synced row collide (symptom: tool listing POSTs to
 the hub root with no auth) — config.yaml is the single source. Toolset
 allowlists are updated by NAME via `/key/update`
@@ -160,7 +161,11 @@ one-part pointer (`[memory nudge] N possibly relevant memories…`). Nudge
 auth: `litellm_hass_key` via hasecret, `LITELLM_INTERNAL_URL` overridable.
 
 Debugging notes: `/healthz` on the hub shows per-server state (a `failed`
-memory server usually means `memory_api_key` didn't resolve); LiteLLM
-Redis pubsub config-sync is BROKEN on this install (`unknown command
-'PUBLISH'`) so DB-side MCP changes never hot-load — config-watch touches
-and restarts are the reliable levers.
+memory server usually means `memory_api_key` didn't resolve). Redis
+pubsub config-sync works again since 2026-09-26 — it had been silently
+dead because hb's Redis hardening block carried `rename-command PUBLISH
+""` (removed + service restarted). Only model-table writes
+(`/model/new`, `/model/{id}/update`, `/model/delete`) publish
+`config_change` events; `/config/update` general-settings params do NOT
+— replicas pick those up via the ~30s DB poll. File-based config changes
+still need a proxy restart.

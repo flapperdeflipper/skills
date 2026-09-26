@@ -10,7 +10,9 @@ Checks, per top-level directory (excluding schema/, scripts/, agents/, .github/)
   - description is 20-1536 chars; description + when_to_use <= 1536 combined
   - context budget: a model-invoked description stays <= DESC_BUDGET chars and
     SKILL.md <= SKILL_MD_BUDGET bytes (both are paid far more often than
-    anything under references/ or a guide)
+    anything under references/ or a guide). A vendored skill (metadata.source
+    set) is copied verbatim from upstream and gets VENDORED_SKILL_MD_BUDGET
+    instead, so a re-sync never needs hand edits to fit
   - hub structure: no SKILL.md below the top level (a loader that globs
     recursively would list it as a separate skill again), and every
     <sub>/GUIDE.md is named as `<sub>` in the hub's SKILL.md router
@@ -43,6 +45,7 @@ NAME_PATTERN = re.compile(r"^[a-z0-9]+(?:-[a-z0-9]+)*$")
 DESC_MIN, DESC_MAX = 20, 1536
 DESC_BUDGET = 400
 SKILL_MD_BUDGET = 12_000
+VENDORED_SKILL_MD_BUDGET = 16_000
 LINK_PATTERN = re.compile(r"\[[^\]]*\]\(([^)\s]+)\)")
 
 try:
@@ -143,10 +146,12 @@ def main() -> int:
             if total > DESC_BUDGET:
                 problems.append(f"description is {total} chars, budget {DESC_BUDGET}")
         size = skill_md.stat().st_size
-        if size > SKILL_MD_BUDGET:
-            problems.append(
-                f"SKILL.md is {size} bytes, budget {SKILL_MD_BUDGET}: move detail into a guide or references/"
-            )
+        metadata = fm.get("metadata")
+        vendored = isinstance(metadata, dict) and bool(metadata.get("source"))
+        budget = VENDORED_SKILL_MD_BUDGET if vendored else SKILL_MD_BUDGET
+        if size > budget:
+            hint = "re-check upstream" if vendored else "move detail into a guide or references/"
+            problems.append(f"SKILL.md is {size} bytes, budget {budget}: {hint}")
         if not entry.is_symlink():
             problems.extend(check_structure(entry, skill_md))
 

@@ -25,6 +25,9 @@ the delegation and context model works.
 - `scripts/sync-agent-hub.sh` - registers/updates the agents in `agents/` in
   the LiteLLM A2A agent registry (dry-run by default, `--apply` to execute,
   `--prune` removes registry entries that left the repo)
+- `scripts/vendor-dagu-skill.sh <tag>` - re-vendors `dagu/` from the Dagu
+  repository at a release tag (keep it at the Dagu version on hd and in
+  agent-base)
 - CI (`verify-skills`) checks frontmatter against the schemas, the context
   budget and hub layout, shell script syntax and shellcheck, and runs the
   `security-audit` validator tests, on every PR and push to main
@@ -59,7 +62,10 @@ the repo keeps few of them. Related skills are folded into **hub skills**:
 Standalone skills: `security-audit` (vendored from
 [cloudflare/security-audit-skill](https://github.com/cloudflare/security-audit-skill),
 MIT; guidance mode by default, the six-phase audit lives in
-`references/FULL-AUDIT.md`), `secrets`, `research`,
+`references/FULL-AUDIT.md`), `dagu` (vendored verbatim from
+[dagucloud/dagu `skills/dagu`](https://github.com/dagucloud/dagu/tree/main/skills/dagu),
+GPL-3.0, maintained upstream alongside the CLI; re-sync with
+`scripts/vendor-dagu-skill.sh`), `secrets`, `research`,
 `socrates`, `playwright-expert`, `wizard`. `grill-with-docs`, `handoff` and
 `improve-codebase-architecture` set `disable-model-invocation`, so they cost no
 resident context and stay `/commands`.
@@ -72,7 +78,8 @@ Rules, enforced by `scripts/verify_skills.py`:
 - A hub is self-contained (skills are installed one at a time); reach another
   hub's file by naming that skill, not with a `../../` path.
 - Descriptions stay within 400 chars and `SKILL.md` within 12 KB. Put detail in
-  a guide or `references/`.
+  a guide or `references/`. Vendored skills (`metadata.source` set) are kept
+  verbatim and get 16 KB instead.
 - Relative markdown links must resolve.
 
 Agents narrow this further: each one denies `skill: "*"` and allows only the

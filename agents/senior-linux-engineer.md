@@ -48,6 +48,7 @@ permission:
     "*": deny
     "languages": allow
     "home-infra": allow
+    "dagu": allow
     "operations": allow
     "secrets": allow
     "wizard": allow

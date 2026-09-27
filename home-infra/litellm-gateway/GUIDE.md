@@ -10,22 +10,45 @@ human UI — agents never see OAuth.
 Registered on the gateway (config.yaml `mcp_servers:`, upstream auth
 server-side): homeassistant (via mcp-hub → ha_opencode:8927, needs mcp-hub
 ≥ 1.1.1), ha_native, victoriametrics, playwright (all via mcp-hub :8930),
-searxng (:8086), context7 (external, token server-side). Server names must
-not contain `-` (LiteLLM rejects them).
+searxng (:8086), context7, github, dagu (external, tokens server-side),
+memory (via mcp-hub :8930 — see Memory section) and docstore (via mcp-hub;
+registered but not yet in any toolset). Server names must not contain `-`
+(LiteLLM rejects them).
 
-Toolsets = virtual keys with `object_permission.mcp_servers` allowlists,
-values in secrets.yaml:
+Toolsets have two layers, and since 2026-09-27 they deliberately diverge
+(`dagu` is scoped to hass only; `docstore` is in neither):
+
+1. Virtual keys: `object_permission.mcp_servers` allowlists (values in
+   secrets.yaml), nominally effective on `/mcp` — but on this LiteLLM
+   version `/key/update` does NOT apply list changes to them (returns
+   200, no effect; observed 2026-09-27 adding `dagu`). Layer 2 is the
+   gate that actually controls `/mcp`.
+2. Native toolset objects: DB rows with hard-coded per-tool lists served
+   at `/toolset/<name>/mcp` — this is LiteLLM-native routing, NOT nginx.
+   The paths do NOT follow the key allowlists (a master key on
+   `/toolset/home/mcp` still gets only the toolset's listed tools) and
+   they validate key↔toolset. Sync them via `GET/PUT /v1/mcp/toolset`
+   (`{toolset_id, tools: [{server_id, tool_name}]}`) — after adding an
+   MCP server, append its tools to every toolset that should see them
+   (copying hass's list into home/remote only when the server is for
+   all three).
 
 | Toolset | Secret | Sees |
 |---|---|---|
-| hass (HA box only) | `litellm_hass_key` | all 7 servers (139 tools) |
-| home | `litellm_home_key` | playwright + searxng + context7 (29 tools) + all models |
-| remote | `litellm_remote_key` | playwright + searxng + context7 (29 tools) + all models |
+| hass | `litellm_hass_key` | 9 servers (187 tools) — the 8 below + `dagu` |
+| home | `litellm_home_key` | 8 servers (184 tools) + all models |
+| remote | `litellm_remote_key` | 8 servers (184 tools) + all models |
+
+The 8 shared servers: homeassistant, ha_native, victoriametrics,
+playwright, searxng, context7, memory, github.
 
 opencode on the HA box wires this via ha_opencode ≥ 3.1.0
 (`mcp_litellm_url`, key env `LITELLM_HASS_KEY`); distributed configs live in
-`/share/syncthing/media/opencode/`. The mcp-hub (:8930) and :8927 endpoints
-remain — as upstreams for the gateway, not for clients.
+`/share/syncthing/media/opencode/` (their MCP entry points at `/mcp` since
+2026-09-26; the `/toolset/<name>/mcp` paths also work and carry each
+toolset's own list — they diverged 2026-09-27: only hass serves dagu). The
+mcp-hub (:8930) and :8927 endpoints remain — as upstreams for the gateway,
+not for clients.
 
 ## Registered servers and aliases
 
@@ -38,6 +61,9 @@ remain — as upstreams for the gateway, not for clients.
 | `searxng` | web + code search (direct, :8086) |
 | `context7` | up-to-date library documentation (external, token server-side) |
 | `memory` | LiteLLM `/v1/memory` store via mcp-hub: `memory_search/tags/get/set/list/delete` (search-first) |
+| `github` | GitHub remote MCP — repos, issues, PRs, code search (external, `GITHUB_MCP_TOKEN` server-side) |
+| `docstore` | agent docstore `doc_*` tools (couchdb add-on) via mcp-hub — registered, not yet in any toolset |
+| `dagu` | Dagu orchestrator at work.pl4.dev — `dagu_read`/`dagu_change`/`dagu_execute` (external, `DAGU_MCP_API_KEY` server-side; hass toolset only) |
 
 Tool names arrive namespaced per server (`litellm_homeassistant-*`,
 `litellm_searxng-*`, …).
@@ -65,7 +91,9 @@ REST equivalent of a tool call (no MCP client needed):
       -d '{"server_id":"litellm_mcp","name":"memory_list","arguments":{}}'
 
 Servers are registered in `/homeassistant/litellm/config.yaml` under
-`mcp_servers:`. Gotcha: stdio children get a **scrubbed environment** —
+`mcp_servers:`. A NEW server entry needs an add-on restart — the config
+watcher does not register never-seen servers (dagu, 2026-09-27: a touch
+left the catalog unchanged; the restart registered it). Gotcha: stdio children get a **scrubbed environment** —
 pass required variables via the per-server `env:` map using
 `os.environ/<NAME>` references. Custom tool code lives in the
 `litellm_mcp` package (`mcp_servers/litellm_mcp/` in the litellm add-on):

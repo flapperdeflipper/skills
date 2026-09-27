@@ -11,12 +11,11 @@ Registered on the gateway (config.yaml `mcp_servers:`, upstream auth
 server-side): homeassistant (via mcp-hub → ha_opencode:8927, needs mcp-hub
 ≥ 1.1.1), ha_native, victoriametrics, playwright (all via mcp-hub :8930),
 searxng (:8086), context7, github, dagu (external, tokens server-side),
-memory (via mcp-hub :8930 — see Memory section) and docstore (via mcp-hub;
-registered but not yet in any toolset). Server names must not contain `-`
-(LiteLLM rejects them).
+memory and docstore (via mcp-hub :8930 — see Memory section). Server names
+must not contain `-` (LiteLLM rejects them).
 
 Toolsets have two layers, and since 2026-09-27 they deliberately diverge
-(`dagu` is scoped to hass only; `docstore` is in neither):
+(`dagu` is scoped to hass only; `docstore` joined all three later that day):
 
 1. Virtual keys: `object_permission.mcp_servers` allowlists (values in
    secrets.yaml), nominally effective on `/mcp` — but on this LiteLLM
@@ -35,12 +34,14 @@ Toolsets have two layers, and since 2026-09-27 they deliberately diverge
 
 | Toolset | Secret | Sees |
 |---|---|---|
-| hass | `litellm_hass_key` | 9 servers (187 tools) — the 8 below + `dagu` |
-| home | `litellm_home_key` | 8 servers (184 tools) + all models |
-| remote | `litellm_remote_key` | 8 servers (184 tools) + all models |
+| hass | `litellm_hass_key` | 10 servers (194 tools) — the 9 below + `dagu` |
+| home | `litellm_home_key` | 9 servers (191 tools) + all models |
+| remote | `litellm_remote_key` | 9 servers (191 tools) + all models |
 
-The 8 shared servers: homeassistant, ha_native, victoriametrics,
-playwright, searxng, context7, memory, github.
+The 9 shared servers: homeassistant, ha_native, victoriametrics,
+playwright, searxng, context7, memory, github, docstore. Counts are what
+the keys actually serve on `/mcp`; the toolset rows hold ~7 stale entries
+more (constant gap, harmless).
 
 opencode on the HA box wires this via ha_opencode ≥ 3.1.0
 (`mcp_litellm_url`, key env `LITELLM_HASS_KEY`); distributed configs live in
@@ -62,7 +63,7 @@ not for clients.
 | `context7` | up-to-date library documentation (external, token server-side) |
 | `memory` | LiteLLM `/v1/memory` store via mcp-hub: `memory_search/tags/get/set/list/delete` (search-first) |
 | `github` | GitHub remote MCP — repos, issues, PRs, code search (external, `GITHUB_MCP_TOKEN` server-side) |
-| `docstore` | agent docstore `doc_*` tools (couchdb add-on) via mcp-hub — registered, not yet in any toolset |
+| `docstore` | agent docstore `doc_*` + `task_claim`/`task_complete` (couchdb add-on) via mcp-hub — in all three toolsets since 2026-09-27 |
 | `dagu` | Dagu orchestrator at work.pl4.dev — `dagu_read`/`dagu_change`/`dagu_execute` (external, `DAGU_MCP_API_KEY` server-side; hass toolset only) |
 
 Tool names arrive namespaced per server (`litellm_homeassistant-*`,

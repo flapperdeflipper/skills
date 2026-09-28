@@ -27,7 +27,7 @@ What a job can touch depends on where it runs:
 - DAGs are files in `workflows/` of **flapperdeflipper/automation-suite**. Git-sync pulls `main` into Dagu every 120 s.
 - Change a DAG by PR, never in the Dagu UI: the next sync would diverge from or overwrite UI edits.
 - A merge to `main` also redeploys the stack itself (`deploy-automation-suite`); say so in the PR if it restarts services.
-- Merge → deploy for other repos: GitHub org webhook → `https://hooks.pl4.dev/hooks/github` (HMAC-checked) → `dispatch-github` enqueues the DAG routed in `config/webhook/routes` (`<owner/repo> <branch> <dag>`) with param `REF=<sha>`. Every deploy DAG also has a polling schedule as fallback.
+- Merge → deploy for other repos: GitHub org webhook → `https://hooks.pl4.dev/hooks/github` (HMAC-checked) → `dispatch-github` enqueues the DAG routed in `config/webhook/routes` (`<owner/repo> <branch> <dag>`) with param `REF=<sha>`. The deploy DAGs keep a slow schedule only as a fallback for a lost delivery: `deploy-automation-suite` every 30 min, the music-service deploy hourly. `deploy-appdaemon-on-merge` still polls every 5 min.
 - New deploy for a repo: add `workflows/<name>.yaml` and a routes line, in one PR.
 
 ## Writing a workflow here
@@ -68,7 +68,11 @@ dagu stop <dag> | dagu retry <dag> --run-id <id> | dagu restart <dag> | dagu deq
 
 - Only `start`, `enqueue`, `status`, `history`, `stop`, `retry`, `restart` and `dequeue` follow the remote context. Everything else runs locally.
 - `--server https://work.pl4.dev` without `/api/v1` fails every command with `invalid character '<'`, because it gets an HTML page back.
-- The OpenCode add-on on ha already has context `hd` (operator key `agent-opencode`). Its CLI state lives in `/data/dagu`, and the startup hook `/homeassistant/opencode/startup.d/10-dagu-state.sh` links it back into `/root` after updates.
+- The OpenCode add-on on ha already has context `hd`, using the operator key `agents-cli`. The same key is also:
+  - in the add-on's env var `DAGU_API_TOKEN`, for scripts and `curl`;
+  - in ha's `secrets.yaml` as `dagu_hass_api_key`.
+
+  Its CLI state lives in `/data/dagu`, and the startup hook `/homeassistant/opencode/startup.d/10-dagu-state.sh` links it back into `/root` after updates.
 
 ### MCP (LiteLLM gateway)
 
@@ -85,7 +89,7 @@ curl -fsS -X POST https://work.pl4.dev/api/v1/dags/<dag>/enqueue \
 curl -fsS https://work.pl4.dev/api/v1/dag-runs?name=<dag>\&limit=5 -H "Authorization: Bearer <key>"
 ```
 
-API keys: Dagu UI → API keys, role `operator` unless the consumer must edit DAGs. Existing keys (all `operator`): `webhook`, `nodered-mcp` (REST), `litellm` (MCP), `agent-opencode` (REST).
+API keys: Dagu UI → API keys, role `operator` unless the consumer must edit DAGs. Existing keys (all `operator`): `webhook`, `nodered-mcp`, `agents-cli` (REST), `litellm` (MCP).
 
 ### Over SSH (admins, from the laptop)
 

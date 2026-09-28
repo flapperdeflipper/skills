@@ -52,11 +52,10 @@ stack on hd; Dagu (skill `dagu`, `references/house.md`) is the job side.
 - Broker `10.20.0.3:1883`, user `nodered`, ACL read/write on `automation/#` only.
 - The broker's ACL check is `rw >= level`, so a topic you can subscribe to is also writable; "read everything, write some" isn't possible.
 - Values are in `node-red.env` on hd as `MQTT_NODERED_HOST`, `_PORT`, `_USER` and `_PASSWORD`; the container has them in its environment.
-- In the `mqtt-broker` config node, server, port and user can use Node-RED's `${MQTT_NODERED_HOST}`-style env substitution. Enter the password as a credential.
+- Config node **`Mosquitto (ha)`** (`mqtt-broker`, client id `node-red-automation-suite`) already exists with these credentials. Use it; don't create another broker node.
 
 **Home Assistant**:
-- Use a `server` config node from `node-red-contrib-home-assistant-websocket`, base URL `http://10.60.0.3:8123`.
-- Access token: a long-lived token of a dedicated HA user `nodered` (not admin unless needed). Create it in HA and enter it as the credential.
+- Config node **`Home Assistant (ha)`** (`server`, `http://10.60.0.3:8123`) already exists and is connected. Its token is HA's `hass_long_lived_auth_token` from ha's `secrets.yaml`, stored as a Node-RED credential. Use it for every HA node.
 - HA events and state come over this websocket, not MQTT.
 
 **GitHub events**:

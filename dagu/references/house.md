@@ -12,7 +12,7 @@ the generic references, this file wins. State as of 2026-09-28.
 | API base URL | `https://work.pl4.dev/api/v1` (inside the stack: `http://dagu:8080/api/v1`) |
 | MCP | `https://work.pl4.dev/mcp`, used through the LiteLLM gateway entry `dagu` |
 | Coordinator (gRPC, mTLS) | `hd.pl4.dev:50055` |
-| Workers | `hd` (container `worker` in the stack), `ha` (10.20.0.3), `hb` (10.20.0.2), `hc` (10.20.0.4): native `dagu worker` systemd services as user `dagu` |
+| Workers | `hd` (container `worker` in the stack), `ha` (ha.pl4.dev), `hb` (hb.pl4.dev), `hc` (hc.pl4.dev): native `dagu worker` systemd services as user `dagu` |
 | Version | 2.17.2 everywhere. The server is a patched build (license-gated features on); workers and the CLI are upstream |
 | Stack checkout / state on hd | `/srv/automation-suite` / `/data/automation-suite` (env files in `env/`, Dagu data in `dagu/`, CA key in `dagu/tls/ca/`) |
 
@@ -27,13 +27,17 @@ What a job can touch depends on where it runs:
 - DAGs are files in `workflows/` of **flapperdeflipper/automation-suite**. Git-sync pulls `main` into Dagu every 120 s.
 - Change a DAG by PR, never in the Dagu UI: the next sync would diverge from or overwrite UI edits.
 - A merge to `main` also redeploys the stack itself (`deploy-automation-suite`); say so in the PR if it restarts services.
-- Merge → deploy for other repos: GitHub org webhook → `https://hooks.pl4.dev/hooks/github` (HMAC-checked) → `dispatch-github` enqueues the DAG routed in `config/webhook/routes` (`<owner/repo> <branch> <dag>`) with param `REF=<sha>`. The deploy DAGs keep a slow schedule only as a fallback for a lost delivery: `deploy-automation-suite` every 30 min, the music-service deploy hourly. `deploy-appdaemon-on-merge` still polls every 5 min.
+- Merge → deploy for other repos: GitHub org webhook → `https://hooks.pl4.dev/hooks/github` (HMAC-checked) → `dispatch-github` enqueues the DAG routed in `config/webhook/routes` (`<owner/repo> <branch> <dag>`) with param `REF=<sha>`. **No schedules anywhere:** DAGs run from webhook routes, other events (Node-RED, MCP, API) or by hand; a lost delivery is redelivered from GitHub (org webhook → Recent Deliveries). Pushes by the suite's own bots (`dagu@automation-suite`: nodered-export, dagu-update; `dagu@hd.pl4.dev`: git-sync publish) start no pipeline (`config/webhook/bot-authors`) and skip CI; pushes by people do both.
+- Every native worker (ha, hb, hc) has a read-only checkout of automation-suite at `/srv/automation-suite`, updated by `sync-suite-checkout` on every push to `main` (per-node read-only deploy key `/var/lib/dagu/.ssh/keys/automation-suite-ro`). Use it for ad-hoc scripts; DAG steps get theirs via `dependencies`.
 - New deploy for a repo: add `workflows/<name>.yaml` and a routes line, in one PR.
 
 ## Writing a workflow here
 
+- **Keep the YAML declarative.** Logic goes in `workflows/scripts/<dag>/<step>.sh` (it sources `../lib.sh`: `log`, `die`, `need`, `suite_git`, …). The step is one line passing its parameters as arguments, e.g. `run: bash scripts/deploy-appdaemon/deploy.sh "${REF}" "${FORCE}"`, and lists what it runs in `dependencies` (`scripts/lib.sh`, `scripts/<dag>/**`) so Dagu ships the scripts to the worker, from the same commit as the DAG. No YAML under `workflows/scripts/` (git-sync would load it as a DAG).
+- **No `schedule:`.** Trigger by event (webhook route, Node-RED flow, MCP, API) or run by hand. If a trigger fails, fix the trigger.
+- **CI in automation-suite:** `lint.yml` (bash -n, shellcheck, `tools/check-workflow-scripts.py`: scripts a step runs must be in its `dependencies`) and `dagu-validate.yml` (`dagu validate` on new/changed DAGs in a PR).
 - Pin the host: `worker_selector: {host: hd|ha|hb|hc}`. The stack leaves `default_execution_mode` at its default, so a DAG without a selector runs locally inside the server container `dagu`, not on a worker. Always pin one.
-- Deploys: `max_active_runs: 1`, set `timeout_sec` and `hist_retention_days`, make scripts idempotent (fetch → compare → apply). Copy the pattern from `deploy-automation-suite.yaml` or `deploy-docker-compose-music-service.yaml`.
+- Deploys: `max_active_runs: 1`, set `timeout_sec` and `hist_retention_days`, make scripts idempotent (fetch → compare → apply). Repos with their own `deploy/deploy.sh` use the shared `scripts/deploy-repo.sh` (see `deploy-docker-compose-music-service.yaml`); others get `scripts/<dag>/deploy.sh` (see `deploy-appdaemon`).
 - Secrets never go in a DAG file. Use Dagu's secret store, or env files under `/data/automation-suite/env/` read by a step on `hd`.
 - Private repos on a worker: `deploy-appdaemon-on-merge.yaml` shows the pattern (deploy key under `/var/lib/dagu/.ssh/keys/`, `GIT_SSH_COMMAND`).
 - Report results for Node-RED flows on MQTT `automation/dagu/status/<dag>` (see the `nodered` skill).
@@ -94,7 +98,7 @@ API keys: Dagu UI → API keys, role `operator` unless the consumer must edit DA
 ### Over SSH (admins, from the laptop)
 
 ```
-ssh 10.20.0.10
+ssh hd.pl4.dev
 cd /srv/automation-suite
 sudo docker compose ps                                     # stack health
 sudo docker compose logs -f dagu worker                    # server + hd worker
@@ -103,12 +107,12 @@ sudo docker compose exec -T dagu dagu enqueue <dag> --config /etc/dagu/config.ya
 ```
 
 - Inside the `dagu` container every CLI command needs `--config /etc/dagu/config.yaml` (`DAGU_HOME=/var/lib/dagu`).
-- Native workers: `ssh 10.20.0.3 'sudo journalctl -u dagu -f'` (same for hb/hc). Their config and certs are in `/etc/dagu`.
+- Native workers: `ssh ha.pl4.dev 'sudo journalctl -u dagu -f'` (same for hb/hc). Their config and certs are in `/etc/dagu`.
 - From a laptop checkout of automation-suite: `bin/suite status` for stack, guard and workers; `bin/suite node add <name> <ssh-target>` adds a worker; `bin/suite guard <target> list|allow|deny` for the DOCKER-USER guard.
 
 ## Operations
 
 - **Upgrade Dagu:** the `dagu-update` DAG builds and smoke-tests a patched release and opens the version-bump PR. After the merge, `dagu-upgrade-workers` brings ha/hb/hc to the same version. Server and workers must match.
-- **Network:** published ports are guarded by DOCKER-USER (`suite-guard`). A ufw INPUT rule `172.18.0.0/16 → 10.20.0.10:50055` lets the stack's own containers reach the coordinator; don't delete it.
+- **Network:** published ports are guarded by DOCKER-USER (`suite-guard`). A ufw INPUT rule (the stack's Docker subnet → hd's coordinator port 50055) lets the stack's own containers reach the coordinator; don't delete it.
 - **Backups:** `/data/automation-suite` holds everything that can't be rebuilt: users, API keys, history and the worker CA key.
 - **Docs:** full setup and cut-over history in the automation-suite repo (`README.md`, `AGENTS.md`, `docs/`).

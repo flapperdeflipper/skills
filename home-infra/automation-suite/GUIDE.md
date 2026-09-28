@@ -1,7 +1,7 @@
 <!-- source: flapperdeflipper, MIT -->
 ## What it is (2026-09-28)
 
-The automation server on hd (10.20.0.10): one Compose stack from
+The automation server on hd (hd.pl4.dev): one Compose stack from
 `flapperdeflipper/automation-suite`, deployed by merging to `main`.
 
 | Piece | Job | Agents reach it via |
@@ -12,7 +12,7 @@ The automation server on hd (10.20.0.10): one Compose stack from
 | workers | `hd` (in the stack), `ha`, `hb`, `hc` (native systemd) | `worker_selector: {host: <name>}` in a DAG |
 
 Repo docs are the source of truth: `README.md`, `AGENTS.md` (agent rules),
-`docs/operations.md`, `docs/cutover-hd.md`.
+`docs/operations.md`.
 
 ## Dagu or Node-RED
 
@@ -34,8 +34,9 @@ Workflow:
 2. Build: `create_flow` or `update_flow`. Nodes need unique 16-hex ids;
    wires reference them; omit `z`. Put the purpose in the flow's `info`.
 3. Test: `inject`, then `read_debug` for that flow.
-4. Record: `export_flows` with a reason. The `nodered-export` DAG commits
-   `nodered/flows.json`; it also runs every 15 min.
+4. Record: every deploy is exported to git automatically (~20 s after it
+   settles; `nodered-export` commits `nodered/flows.json`). `export_flows`
+   with a reason gives the commit a meaningful message.
 5. Undo: every update/delete is backed up; use `list_backups`, then
    `restore_backup`.
 
@@ -55,6 +56,11 @@ Rules:
   loads them within 2 min. Don't edit DAGs in the UI.
 - Pin to a host with `worker_selector`; use `max_active_runs: 1` for
   deploys; write idempotent steps (fetch → compare → apply).
+- Logic lives in `workflows/scripts/<dag>/<step>.sh`; the step is one line
+  and lists the scripts in `dependencies` (CI checks it). No `schedule:`:
+  every DAG is event-triggered (webhook route, Node-RED, MCP) or manual.
+- ha, hb and hc keep a read-only checkout at `/srv/automation-suite`
+  (`sync-suite-checkout`, on every push to `main`).
 - Step processes don't get the worker container's environment. Read
   settings from files (`/srv/automation-suite/.env` →
   `/data/automation-suite/...`).
@@ -71,4 +77,4 @@ Rules:
   last, from a helper container, so the deploy step still reports its result.
 - **Firewall:** published ports on hd pass the DOCKER-USER guard, which only
   lets in hb/ha (VLAN 60) and the workers (:50055). New sources:
-  `bin/suite guard 10.20.0.10 allow <iface> <ip> [port]`.
+  `bin/suite guard hd.pl4.dev allow <iface> <ip> [port]`.

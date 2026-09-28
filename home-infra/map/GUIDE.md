@@ -107,9 +107,9 @@ at start. Tokens are never logged. Tooling and rules: the `secrets` skill.
 
 ## Key infrastructure endpoints
 
-- LiteLLM proxy: `http://10.60.0.3:4000` (internal), `https://llm.pl4.dev` (VPN)
+- LiteLLM proxy: `http://ha.pl4.dev:4000` (internal), `https://llm.pl4.dev` (VPN)
 - LiteLLM MCP gateway: `/mcp` on the proxy (memory/search/docs tools, bearer auth)
-- MCP Hub: `http://10.60.0.3:8930/mcp/<id>` (playwright, victoriametrics,
+- MCP Hub: `http://ha.pl4.dev:8930/mcp/<id>` (playwright, victoriametrics,
   homeassistant → ha_opencode:8927, ha-native) — bearer `MCP_HUB_TOKEN`.
   Since 2026-09-25 the hub is an *upstream* of the LiteLLM MCP gateway,
   not a client entrypoint: all MCP servers are registered in litellm
@@ -121,7 +121,7 @@ at start. Tokens are never logged. Tooling and rules: the `secrets` skill.
   served to agents as the mcp-hub `memory` MCP server (search-first, see the
   litellm-gateway guide)
 - Skills hub: `GET /public/skill_hub` on the proxy
-- Redis: `10.20.0.2:6379` (auth) — litellm cache
+- Redis: `hb.pl4.dev:6379` (auth) — litellm cache
 - PostgreSQL: external, via `litellm_database_dsn` — litellm DB (memory, keys, spend)
 - OpenChamber (read past conversations): `https://opencode.pl4.dev`; agent-side
   read-only copy in `/data/.local/share/opencode/opencode.db` (sqlite, tables

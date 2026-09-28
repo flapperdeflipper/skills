@@ -22,9 +22,9 @@ stack on hd; Dagu (skill `dagu`, `references/house.md`) is the job side.
 |---|---|
 | Container | `node-red` in the stack on hd (`/srv/automation-suite`), data in `/data/automation-suite/node-red` |
 | Editor | https://flows.pl4.dev: vouch first, then Node-RED's own login (user `admin`, password `NODE_RED_ADMIN_PASSWORD` in `/data/automation-suite/env/node-red.env` on hd) |
-| Internal URL | `http://10.60.0.10:1880` (LAN side), `http://node-red:1880` (from other stack containers) |
+| Internal URL | port 1880 on hd's proxy-network address (`SUITE_BIND_WEB` in `/etc/automation-suite/suite.env`); `http://node-red:1880` from other stack containers |
 | Admin API | same URL, `Authorization: Bearer $NODE_RED_API_TOKEN` (from `node-red.env`); 401 without it |
-| MCP | LiteLLM gateway server `nodered` → nodered-mcp (`http://10.60.0.10:3000/mcp`); allowed on key `toolset-hass` and on unrestricted keys |
+| MCP | LiteLLM gateway server `nodered` → nodered-mcp (port 3000 on hd's proxy-network address, `/mcp`); allowed on key `toolset-hass` and on unrestricted keys |
 | Palette | core nodes + `node-red-contrib-home-assistant-websocket@0.80.3`, pinned in `images/node-red/Dockerfile` |
 
 ## Working through the MCP
@@ -35,7 +35,7 @@ stack on hd; Dagu (skill `dagu`, `references/house.md`) is the job side.
    - Config nodes the flow needs (mqtt-broker, HA server, ...) go in `configs`.
    - Give every flow an `info`: what it's for and who asked.
 3. Test: `inject` an inject node, then `read_debug` (filter by flow id or debug node id). `get_context` reads global, flow or node context.
-4. Record it: `export_flows` with a short reason. That enqueues the Dagu DAG `nodered-export`, which commits `nodered/flows.json` to automation-suite; it also runs every 15 min.
+4. Recorded automatically: every deploy (editor, MCP, admin API) reaches git about 20 s after it settles. nodered-mcp watches Node-RED's deploy events and enqueues the Dagu DAG `nodered-export`, which commits `nodered/flows.json` to automation-suite. Call `export_flows` with a short reason to get a meaningful commit message; `nodered_info` shows `auto_export`.
 5. Mistakes: every update and delete is backed up first (`list_backups`, `restore_backup`); `delete_flow` needs `confirm: true`.
 6. Missing node type? `list_node_types`. New modules are a PR in automation-suite (Dockerfile), never an install in the editor.
 
@@ -49,13 +49,13 @@ stack on hd; Dagu (skill `dagu`, `references/house.md`) is the job side.
 ## Integrations
 
 **MQTT** (Mosquitto add-on on ha):
-- Broker `10.20.0.3:1883`, user `nodered`, ACL read/write on `automation/#` only.
+- Broker `ha.pl4.dev:1883`, user `nodered`, ACL read/write on `automation/#` only.
 - The broker's ACL check is `rw >= level`, so a topic you can subscribe to is also writable; "read everything, write some" isn't possible.
 - Values are in `node-red.env` on hd as `MQTT_NODERED_HOST`, `_PORT`, `_USER` and `_PASSWORD`; the container has them in its environment.
 - Config node **`Mosquitto (ha)`** (`mqtt-broker`, client id `node-red-automation-suite`) already exists with these credentials. Use it; don't create another broker node.
 
 **Home Assistant**:
-- Config node **`Home Assistant (ha)`** (`server`, `http://10.60.0.3:8123`) already exists and is connected. Its token is HA's `hass_long_lived_auth_token` from ha's `secrets.yaml`, stored as a Node-RED credential. Use it for every HA node.
+- Config node **`Home Assistant (ha)`** (`server`, ha's proxy-network address, port 8123) already exists and is connected. Its token is HA's `hass_long_lived_auth_token` from ha's `secrets.yaml`, stored as a Node-RED credential. Use it for every HA node.
 - HA events and state come over this websocket, not MQTT.
 
 **GitHub events**:
@@ -78,12 +78,13 @@ stack on hd; Dagu (skill `dagu`, `references/house.md`) is the job side.
 ## Over SSH (admins)
 
 ```
-ssh 10.20.0.10
+ssh hd.pl4.dev
 cd /srv/automation-suite
 sudo docker compose logs -f node-red nodered-mcp
 sudo docker compose restart node-red
 t=$(sudo sed -n 's/^NODE_RED_API_TOKEN=//p' /data/automation-suite/env/node-red.env)
-curl -fsS -H "Authorization: Bearer $t" http://10.60.0.10:1880/flows | jq length
+bind=$(sed -n 's/^SUITE_BIND_WEB=//p' /etc/automation-suite/suite.env)
+curl -fsS -H "Authorization: Bearer $t" "http://$bind:1880/flows" | jq length
 ```
 
 - **Env changes** (`env/node-red.env`) need the container recreated: `sudo docker compose up -d node-red`. A restart alone keeps the old environment.

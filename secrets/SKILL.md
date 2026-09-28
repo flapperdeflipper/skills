@@ -76,7 +76,7 @@ Always wrap the whole command in `sh -c` with single quotes so the injected
 variable expands inside the child shell (rule 2 idiom). Multi-line works too:
 
     hasecret run KEY=litellm_master_key -- sh -c '
-      curl -s -H "Authorization: Bearer $KEY" http://10.60.0.3:4000/v1/models
+      curl -s -H "Authorization: Bearer $KEY" http://ha.pl4.dev:4000/v1/models
     '
 
 ## Idioms
@@ -84,7 +84,7 @@ variable expands inside the child shell (rule 2 idiom). Multi-line works too:
 Authenticated call against an internal service:
 
     hasecret run KEY=litellm_master_key -- sh -c \
-      'curl -s -H "Authorization: Bearer $KEY" http://10.60.0.3:4000/v1/models'
+      'curl -s -H "Authorization: Bearer $KEY" http://ha.pl4.dev:4000/v1/models'
 
 Storing a value that already exists in a variable (never on the command line
 of a shell history):

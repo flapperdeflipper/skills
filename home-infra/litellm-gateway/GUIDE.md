@@ -3,7 +3,7 @@
 
 Every self-hosted MCP server is registered **on the LiteLLM proxy** and
 clients add a single MCP entry: `https://llm.pl4.dev/mcp` (internal
-`http://10.60.0.3:4000/mcp`) with a Bearer toolset key. `/v1` (models) and
+`http://ha.pl4.dev:4000/mcp`) with a Bearer toolset key. `/v1` (models) and
 `/mcp` (tools) bypass the nginx/vouch OAuth layer, which only guards the
 human UI — agents never see OAuth.
 
@@ -87,7 +87,7 @@ window matters; use normal keys for agents that benefit from the full catalog.
 
 REST equivalent of a tool call (no MCP client needed):
 
-    curl -X POST http://10.60.0.3:4000/mcp-rest/tools/call \
+    curl -X POST http://ha.pl4.dev:4000/mcp-rest/tools/call \
       -H "Authorization: Bearer $KEY" -H "Content-Type: application/json" \
       -d '{"server_id":"litellm_mcp","name":"memory_list","arguments":{}}'
 

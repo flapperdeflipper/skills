@@ -15,7 +15,7 @@ HP Slate 17, 1920x1080, `10.20.1.250` / `bigtablet.home.lan`.
   `app_kiosk: fullscreen` in Arguments.json).
 - Screen capture: `sudo -u kiosk DISPLAY=:0 XAUTHORITY=/home/kiosk/.Xauthority scrot`
   (black image = display off via lights automation).
-- Pages: 1) `http://10.20.0.3:8123` (HA) 2) `http://localhost:3000`
-  (immich-kiosk.service) 3) `http://10.60.0.3:8126/home?skin=default`
+- Pages: 1) `http://ha.pl4.dev:8123` (HA) 2) `http://localhost:3000`
+  (immich-kiosk.service) 3) `http://ha.pl4.dev:8126/home?skin=default`
   (AppDaemon HADashboard on the HA host; dashboard.pl4.dev redirects to
   auth.pl4.dev SSO, so use the local URL).

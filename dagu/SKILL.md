@@ -216,3 +216,11 @@ Load only the file you need:
 - `references/build.md` when creating or troubleshooting a `type: build` file workflow, path references, reuse decisions, or `--no-reuse`
 - `references/file-dependencies.md` when a DAG needs scripts, configuration, or other files from its working directory
 - `references/harnesses.md` only when the DAG invokes external CLI harnesses through `harness.run`
+
+## This house
+
+Working on this home's Dagu (automation-suite on hd: https://work.pl4.dev,
+workers hd/ha/hb/hc)? Read `references/house.md` first: where DAGs live (git,
+not the UI), how to validate locally, and how to run and inspect them through
+the CLI context, MCP, REST or SSH. It overrides the generic advice above where
+they differ.

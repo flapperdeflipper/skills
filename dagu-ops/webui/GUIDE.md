@@ -1,0 +1,95 @@
+<!-- adapted from vinnie357/claude-skills plugins/tools/dagu/skills/webui/SKILL.md (MIT); body kept near-verbatim, frontmatter removed, /dagu:rest-api cross-ref re-pointed at the rest-api guide -->
+
+# Dagu Web UI
+
+Use this skill when working with Dagu's web interface to manage workflows, view execution history, monitor running workflows, or configure the UI.
+
+## Core Capabilities
+
+The Dagu Web UI provides:
+
+1. **Workflow Management** - View, start, stop, and manage workflows
+2. **Execution Monitoring** - Real-time status and logs
+3. **History Viewing** - Past execution records and results
+4. **DAG Visualization** - Visual representation of workflow structure
+5. **Log Access** - View detailed execution logs
+6. **Schedule Management** - Configure when workflows run
+
+## Quick Start
+
+Access Dagu Web UI at `http://localhost:8080` (default) after starting Dagu:
+
+```bash
+dagu server
+```
+
+## Primary Operations
+
+### Start a Workflow
+
+To manually execute a workflow:
+1. Navigate to workflow list
+2. Click the workflow name
+3. Click "Start" button
+4. View real-time execution progress
+
+### Monitor Execution
+
+For detailed information on a running workflow, consult `references/monitoring.md` which covers:
+- Reading execution logs
+- Understanding status indicators
+- Tracking step progress
+- Identifying failures
+
+### View History
+
+Execution history is not unconditionally preserved — the REST API supports deleting individual records (`DELETE /dags/{dagName}/history/{requestId}`, see the `rest-api` guide's `references/api-endpoints.md` "Delete Execution History"). Open a workflow's history to review past runs, find failed executions, and retry them (see Common Tasks).
+
+### Workflow Visualization
+
+The DAG view shows workflow structure. Click step names in the DAG view for step-specific details.
+
+## When to Consult References
+
+Read `references/monitoring.md` for execution status indicators, real-time log viewing, progress tracking, error detection, and troubleshooting stuck workflows.
+
+## Common Tasks
+
+### Restart a Failed Workflow
+
+1. Find the failed execution in history
+2. Click the retry/restart button
+3. Monitor the new execution
+
+### Stop a Running Workflow
+
+1. Navigate to the running workflow
+2. Click "Stop" or "Cancel"
+3. Confirm the action
+4. View cleanup handlers execution
+
+### View Detailed Logs
+
+When you need to debug a workflow:
+1. Click on the specific workflow execution
+2. Select the step with issues
+3. View stdout/stderr logs
+4. Check for error messages
+
+For advanced log analysis, consult `references/monitoring.md`.
+
+## Key Principles
+
+- **Real-time visibility**: Web UI provides live updates of workflow execution
+- **Click-based operations**: No CLI needed for basic workflow management
+- **History preservation**: Executions are logged and accessible; individual records can be deleted via the REST API
+- **Visual feedback**: Status indicators show current state at a glance
+- **Log accessibility**: Detailed logs available for debugging
+
+## Pro Tips
+
+- Use the search feature to quickly find workflows by name
+- Filter execution history by date range or status
+- Click on step names in DAG view for step-specific details
+- Use the refresh button if live updates seem delayed
+- Check the scheduler status to verify cron jobs are active

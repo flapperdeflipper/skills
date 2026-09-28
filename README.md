@@ -58,6 +58,7 @@ the repo keeps few of them. Related skills are folded into **hub skills**:
 | `home-infra` | map, home-assistant-ops, litellm-gateway, mqtt-mcp, opencode-sessions, session-cleanup, mr-workflow |
 | `home-devices` | touchkio, ble-presence, appdaemon |
 | `offline-lab` | project, buildroot |
+| `dagu-ops` | rest-api, webui |
 
 Standalone skills: `security-audit` (vendored from
 [cloudflare/security-audit-skill](https://github.com/cloudflare/security-audit-skill),

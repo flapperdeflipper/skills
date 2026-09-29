@@ -49,7 +49,6 @@ permission:
     "languages": allow
     "home-infra": allow
     "dagu": allow
-    "nodered": allow
     "operations": allow
     "secrets": allow
     "wizard": allow

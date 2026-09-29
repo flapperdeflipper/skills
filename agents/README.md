@@ -36,7 +36,7 @@ reachable by `@name` or dispatched automatically via the `task` tool.
 | `docs-writer` | subagent | writing, software-design (domain-modeling) |
 | `frontend-developer` | subagent | languages (typescript-pro), playwright-expert, software-design (prototype) |
 | `dba` | subagent | backend (postgres-pro) |
-| `senior-linux-engineer` | subagent | home-infra, operations, dagu, nodered, languages (bash-scripting), secrets, wizard |
+| `senior-linux-engineer` | subagent | home-infra, operations, dagu, languages (bash-scripting), secrets, wizard |
 | `embedded-linux-engineer` | subagent | offline-lab |
 
 Most skills are hubs (see the top-level README), so an allowlist names a hub

@@ -67,9 +67,7 @@ MIT; guidance mode by default, the six-phase audit lives in
 [dagucloud/dagu `skills/dagu`](https://github.com/dagucloud/dagu/tree/main/skills/dagu),
 GPL-3.0, maintained upstream alongside the CLI; re-sync with
 `scripts/vendor-dagu-skill.sh`, which keeps the locally maintained
-`dagu/references/house.md` and its pointer in `SKILL.md`), `nodered` (this
-house's Node-RED: flows via the nodered MCP, MQTT/HA/GitHub/Dagu wiring),
-`secrets`, `research`,
+`dagu/references/house.md` and its pointer in `SKILL.md`), `secrets`, `research`,
 `socrates`, `playwright-expert`, `wizard`. `grill-with-docs`, `handoff` and
 `improve-codebase-architecture` set `disable-model-invocation`, so they cost no
 resident context and stay `/commands`.

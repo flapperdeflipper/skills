@@ -26,21 +26,20 @@ What a job can touch depends on where it runs:
 
 - DAGs are files in `workflows/` of **flapperdeflipper/automation-suite**. Git-sync pulls `main` into Dagu every 120 s.
 - Change a DAG by PR, never in the Dagu UI: the next sync would diverge from or overwrite UI edits.
-- A merge to `main` also redeploys the stack itself (`deploy-automation-suite`); say so in the PR if it restarts services.
-- Merge → deploy for other repos: GitHub org webhook → `https://hooks.pl4.dev/hooks/github` (HMAC-checked) → `dispatch-github` enqueues the DAG routed in `config/webhook/routes` (`<owner/repo> <branch> <dag>`) with param `REF=<sha>`. **No schedules anywhere:** DAGs run from webhook routes, other events (Node-RED, MCP, API) or by hand; a lost delivery is redelivered from GitHub (org webhook → Recent Deliveries). Pushes by the suite's own bots (`dagu@automation-suite`: nodered-export, dagu-update; `dagu@hd.pl4.dev`: git-sync publish) start no pipeline (`config/webhook/bot-authors`) and skip CI; pushes by people do both.
-- Every native worker (ha, hb, hc) has a read-only checkout of automation-suite at `/srv/automation-suite`, updated by `sync-suite-checkout` on every push to `main` (per-node read-only deploy key `/var/lib/dagu/.ssh/keys/automation-suite-ro`). Use it for ad-hoc scripts; DAG steps get theirs via `dependencies`.
+- A merge to `main` also redeploys the stack itself (`deploy-automation-suite`, once CI passed); say so in the PR if it restarts services.
+- Merge → deploy for other repos: GitHub org webhook → `https://hooks.pl4.dev/hooks/github` (HMAC-checked) → `dispatch-github` enqueues the DAG routed in `config/webhook/routes` (`<owner/repo> <branch> <after> <dag>`) with param `REF=<sha>`: `<after>` = a CI workflow file (`ci.yml`: on GitHub's `workflow_run` when that workflow passed for a push to the branch; a red run deploys nothing) or `push` (repos without CI). Deploy scripts never go back to an older commit unless `FORCE=1` (CI runs can finish out of order). **No schedules anywhere:** DAGs run from webhook routes, other events (HA automations, MCP, API) or by hand; a lost delivery is redelivered from GitHub (org webhook → Recent Deliveries). Pushes by the suite's own bots (`dagu@automation-suite`: dagu-update; `dagu@hd.pl4.dev`: git-sync publish) start no pipeline (`config/webhook/bot-authors`) and skip CI; pushes by people do both.
+- Every native worker (ha, hb, hc) has a read-only checkout of automation-suite at `/srv/automation-suite`, updated by `sync-suite-checkout` when CI passed on `main` (per-node read-only deploy key `/var/lib/dagu/.ssh/keys/automation-suite-ro`). Use it for ad-hoc scripts; DAG steps get theirs via `dependencies`.
 - New deploy for a repo: add `workflows/<name>.yaml` and a routes line, in one PR.
 
 ## Writing a workflow here
 
 - **Keep the YAML declarative.** Logic goes in `workflows/scripts/<dag>/<step>.sh` (it sources `../lib.sh`: `log`, `die`, `need`, `suite_git`, …). The step is one line passing its parameters as arguments, e.g. `run: bash scripts/deploy-appdaemon/deploy.sh "${REF}" "${FORCE}"`, and lists what it runs in `dependencies` (`scripts/lib.sh`, `scripts/<dag>/**`) so Dagu ships the scripts to the worker, from the same commit as the DAG. No YAML under `workflows/scripts/` (git-sync would load it as a DAG).
-- **No `schedule:`.** Trigger by event (webhook route, Node-RED flow, MCP, API) or run by hand. If a trigger fails, fix the trigger.
-- **CI in automation-suite:** `lint.yml` (bash -n, shellcheck, `tools/check-workflow-scripts.py`: scripts a step runs must be in its `dependencies`) and `dagu-validate.yml` (`dagu validate` on new/changed DAGs in a PR).
+- **No `schedule:`.** Trigger by event (webhook route, HA automation, MCP, API) or run by hand. If a trigger fails, fix the trigger.
+- **CI in automation-suite:** `ci.yml` on every PR and push to `main`: bash -n, shellcheck, `tools/check-workflow-scripts.py` (scripts a step runs must be in its `dependencies`) and `dagu validate` on new/changed DAGs. Its green run on `main` is what deploys.
 - Pin the host: `worker_selector: {host: hd|ha|hb|hc}`. The stack leaves `default_execution_mode` at its default, so a DAG without a selector runs locally inside the server container `dagu`, not on a worker. Always pin one.
 - Deploys: `max_active_runs: 1`, set `timeout_sec` and `hist_retention_days`, make scripts idempotent (fetch → compare → apply). Repos with their own `deploy/deploy.sh` use the shared `scripts/deploy-repo.sh` (see `deploy-docker-compose-music-service.yaml`); others get `scripts/<dag>/deploy.sh` (see `deploy-appdaemon`).
 - Secrets never go in a DAG file. Use Dagu's secret store, or env files under `/data/automation-suite/env/` read by a step on `hd`.
 - Private repos on a worker: `deploy-appdaemon-on-merge.yaml` shows the pattern (deploy key under `/var/lib/dagu/.ssh/keys/`, `GIT_SSH_COMMAND`).
-- Report results for Node-RED flows on MQTT `automation/dagu/status/<dag>` (see the `nodered` skill).
 
 ## Validate and try locally (any agent with the CLI)
 
@@ -93,7 +92,7 @@ curl -fsS -X POST https://work.pl4.dev/api/v1/dags/<dag>/enqueue \
 curl -fsS https://work.pl4.dev/api/v1/dag-runs?name=<dag>\&limit=5 -H "Authorization: Bearer <key>"
 ```
 
-API keys: Dagu UI → API keys, role `operator` unless the consumer must edit DAGs. Existing keys (all `operator`): `webhook`, `nodered-mcp`, `agents-cli` (REST), `litellm` (MCP).
+API keys: Dagu UI → API keys, role `operator` unless the consumer must edit DAGs. Existing keys (all `operator`): `webhook`, `agents-cli` (REST), `litellm` (MCP).
 
 ### Over SSH (admins, from the laptop)
 

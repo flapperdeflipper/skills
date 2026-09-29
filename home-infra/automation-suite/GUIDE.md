@@ -8,7 +8,7 @@ passed).
 | Piece | Job | Agents reach it via |
 |---|---|---|
 | Dagu (patched) | durable jobs: deploys, builds, backups, scripts on hosts; history, retries | MCP `dagu`, https://work.pl4.dev, `dagu` CLI context `hd` |
-| webhook | GitHub org webhook ingress: green CI on a deploy branch (`workflow_run`) → Dagu deploy DAG | none (config in the repo) |
+| webhook | deploy hook: the last CI job of a repo (reusable `deploy.yml`, GitHub OIDC token) enqueues its deploy DAG and waits for it | none (config in the repo) |
 | workers | `hd` (in the stack), `ha`, `hb`, `hc` (native systemd) | `worker_selector: {host: <name>}` in a DAG |
 
 Repo docs are the source of truth: `README.md`, `AGENTS.md` (agent rules),
@@ -31,17 +31,20 @@ Node-RED was removed on 2026-09-29 (it only logged GitHub events).
   deploys; write idempotent steps (fetch → compare → apply).
 - Logic lives in `workflows/scripts/<dag>/<step>.sh`; the step is one line
   and lists the scripts in `dependencies` (CI checks it). No `schedule:`:
-  every DAG is event-triggered (webhook route, HA automation, MCP) or manual.
+  every DAG is event-triggered (CI deploy job, HA automation, MCP) or manual.
 - ha, hb and hc keep a read-only checkout at `/srv/automation-suite`
   (`sync-suite-checkout`, when CI passed on `main`).
 - Step processes don't get the worker container's environment. Read
   settings from files (`/srv/automation-suite/.env` →
   `/data/automation-suite/...`).
-- Repo deploys on merge: a DAG taking `REF`, plus a line in
-  `config/webhook/routes` (`<owner/repo> <branch> <after> <dag>`). `<after>`
-  is the repo's CI workflow file (`ci.yml`, run when it passed for a push to
-  the branch) or `push` for a repo without CI. Deploys never go back to an
-  older commit unless `FORCE=1` (a rollback).
+- Repo deploys on merge: a DAG taking `REF`, a line in
+  `config/webhook/routes` (`<owner/repo> <branch> <dag>`), and a last CI job
+  `uses: flapperdeflipper/automation-suite/.github/workflows/deploy.yml@main`
+  (`if: github.event_name == 'push'`, `permissions: id-token: write`). It
+  enqueues the routed DAGs with the pushed commit and waits for them; one
+  deploy per repo and branch at a time. Deploys never go back to an older
+  commit unless `FORCE=1` (a rollback). Details: automation-suite
+  `docs/operations.md`.
 - Dagu itself: `dagu-update` (build + smoke test + PR), merge, then
   `dagu-upgrade-workers`.
 
@@ -49,7 +52,7 @@ Node-RED was removed on 2026-09-29 (it only logged GitHub events).
 
 - **State:** everything lives in `/data/automation-suite` on hd. Secrets are
   in `env/*.env` there, never in git.
-- **Merging `automation-suite` deploys hd** once `ci.yml` passed. The stack's worker restarts
+- **Merging `automation-suite` deploys hd** as the last job of CI, and that job only ends once the hd worker was replaced. The stack's worker restarts
   last, from a helper container, so the deploy step still reports its result.
 - **Firewall:** published ports on hd pass the DOCKER-USER guard, which only
   lets in hb/ha (VLAN 60) and the workers (:50055). New sources:

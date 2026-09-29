@@ -36,6 +36,7 @@ refuses to store a token while GH_TOKEN is in its own environment):
 | skills | `/homeassistant/skills` | `https://github.com/flapperdeflipper/skills.git` |
 | home-assistant-config | `/homeassistant` | `git@github.com:flapperdeflipper/home-assistant-config.git` |
 | agent-base | `/homeassistant/agent-base` | `https://github.com/flapperdeflipper/agent-base.git` |
+| esphome-config | `/homeassistant/esphome` | `https://github.com/flapperdeflipper/esphome-config.git` |
 
 ## Workflow
 

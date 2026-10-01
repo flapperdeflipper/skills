@@ -116,10 +116,12 @@ breaks the other machines. Use `/data/venvs/<project-name>`.
   casually re-add.
 - chromium is NOT in agent-base; only ha_opencode installs a chromium+fonts
   layer for its MCP screenshot tool.
-- playwright-browser add-on (2026.09.21+): Debian chromium + nginx under s6,
-  built on base-debian:trixie — no Playwright FROM-line bumps; browser
-  updates ride Debian package updates via CalVer-dated rebuilds. Chromium
-  only (no Firefox/WebKit). MCP bridges connect over CDP.
+- Agent browser (mcp-hub ≥ 2.0.0, 2026-10-01): Debian chromium inside the
+  mcp-hub image, launched by chrome-devtools-mcp over a pipe — no CDP port
+  anywhere, the hub's bearer token is the only way in. Browser updates ride
+  Debian package updates on hub rebuilds. Replaces the playwright-browser
+  add-on, whose CDP port 9222 was open to the LAN (and public IPv6)
+  without auth — do not bring back a network-exposed CDP endpoint.
 - Full report: `/share/scratchpad/opencode/2026-09-21-image-slimming/REPORT.md`
 
 ## OpenChamber add-on: stopped

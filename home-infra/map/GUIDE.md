@@ -20,9 +20,10 @@ on the human's in-flight feature branch: never branch, commit or rebase there.
 `ha_opencode` (this add-on: certified OpenCode + OpenChamber web UI +
 ha-mcp-server + hasecret + op CLI) · `litellm` (LLM proxy, MCP gateway,
 skills hub) · `mcp-hub` (shared MCP servers over HTTP, port 8930 —
-playwright/victoriametrics/homeassistant forwarder/ha-native) ·
-`searxng_with_mcp` · `mosquitto` · `playwright-browser` · `terminal` ·
-`isponsorblocktv`.
+chrome-devtools (in-container Chromium)/victoriametrics/homeassistant
+forwarder/ha-native) · `searxng_with_mcp` · `mosquitto` · `terminal` ·
+`isponsorblocktv`. (`playwright-browser` was retired 2026-10-01 — its CDP
+port had no auth; the browser now lives inside mcp-hub.)
 
 ## Shared components
 
@@ -110,7 +111,7 @@ at start. Tokens are never logged. Tooling and rules: the `secrets` skill.
 
 - LiteLLM proxy: `http://ha.pl4.dev:4000` (internal), `https://llm.pl4.dev` (VPN)
 - LiteLLM MCP gateway: `/mcp` on the proxy (memory/search/docs tools, bearer auth)
-- MCP Hub: `http://ha.pl4.dev:8930/mcp/<id>` (playwright, victoriametrics,
+- MCP Hub: `http://ha.pl4.dev:8930/mcp/<id>` (chrome-devtools, victoriametrics,
   homeassistant → ha_opencode:8927, ha-native) — bearer `MCP_HUB_TOKEN`.
   Since 2026-09-25 the hub is an *upstream* of the LiteLLM MCP gateway,
   not a client entrypoint: all MCP servers are registered in litellm

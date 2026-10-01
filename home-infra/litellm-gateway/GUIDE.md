@@ -9,7 +9,7 @@ human UI — agents never see OAuth.
 
 Registered on the gateway (config.yaml `mcp_servers:`, upstream auth
 server-side): homeassistant (via mcp-hub → ha_opencode:8927, needs mcp-hub
-≥ 1.1.1), ha_native, victoriametrics, playwright (all via mcp-hub :8930),
+≥ 1.1.1), ha_native, victoriametrics, chrome_devtools (all via mcp-hub :8930),
 searxng (:8086), context7, github, dagu (external, tokens server-side),
 memory and docstore (via mcp-hub :8930 — see Memory section). Server names
 must not contain `-` (LiteLLM rejects them).
@@ -39,7 +39,7 @@ Toolsets have two layers, and since 2026-09-27 they deliberately diverge
 | remote | `litellm_remote_key` | 9 servers (191 tools) + all models |
 
 The 9 shared servers: homeassistant, ha_native, victoriametrics,
-playwright, searxng, context7, memory, github, docstore. Counts are what
+chrome_devtools, searxng, context7, memory, github, docstore. Counts are what
 the keys actually serve on `/mcp`; the toolset rows hold ~7 stale entries
 more (constant gap, harmless).
 
@@ -57,7 +57,7 @@ not for clients.
 |--------|----------|
 | `homeassistant` | full ha-mcp-server (73 tools) via mcp-hub → ha_opencode:8927 |
 | `ha_native` | curated Assist/entity-control tools from Core's own MCP endpoint (via mcp-hub) |
-| `playwright` | shared Playwright browser automation (via mcp-hub, CDP to playwright-browser) |
+| `chrome_devtools` | shared headless Chromium via chrome-devtools-mcp (mcp-hub ≥ 2.0.0 `/mcp/chrome-devtools`; browser runs inside the hub container, no CDP port). Page-scoped tools take a `pageId`; `new_page` takes `isolatedContext` for separate cookies/storage. Replaced `playwright` on 2026-10-01 |
 | `victoriametrics` | PromQL tools against Victoria Metrics (via mcp-hub) |
 | `searxng` | web + code search (direct, :8086) |
 | `context7` | up-to-date library documentation (external, token server-side) |

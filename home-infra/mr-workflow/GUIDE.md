@@ -138,7 +138,7 @@ Org-wide Renovate (since 2026-09-26) runs daily from the private
 update-addons roll-up are retired. Update PRs merge manually — no automerge.
 Renovate's post-upgrade task (`scripts/renovate-post-upgrade.sh` in addons)
 already bumps config.yaml versions and CHANGELOG entries per repo
-convention, including CalVer (playwright-browser) and date.N (mosquitto)
+convention, including CalVer and date.N (mosquitto)
 schemes — verify, don't re-add. Versioning: add-on versions are plain semver
 bumps of our own line — never follow upstream versions, never `-N` suffixes.
 Gotchas: home-assistant/builder actions after 2026.02.1 reference unpublished

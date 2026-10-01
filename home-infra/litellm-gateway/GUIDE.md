@@ -18,10 +18,14 @@ Toolsets have two layers, and since 2026-09-27 they deliberately diverge
 (`dagu` is scoped to hass only; `docstore` joined all three later that day):
 
 1. Virtual keys: `object_permission.mcp_servers` allowlists (values in
-   secrets.yaml), nominally effective on `/mcp` — but on this LiteLLM
-   version `/key/update` does NOT apply list changes to them (returns
-   200, no effect; observed 2026-09-27 adding `dagu`). Layer 2 is the
-   gate that actually controls `/mcp`.
+   secrets.yaml), nominally effective on `/mcp` — but they are NOT the
+   gate: `docstore` and `dagu` are served without being on any list.
+   Layer 2 is the gate that actually controls `/mcp`. `/key/update`
+   with `object_permission.mcp_servers` did apply a rename on
+   2026-10-01 (playwright → chrome_devtools on all three keys; it also
+   dropped the unregistered `nodered` from hass), after failing to add
+   `dagu` on 2026-09-27 — keep the lists tidy, but verify `/mcp`, not
+   the list.
 2. Native toolset objects: DB rows with hard-coded per-tool lists served
    at `/toolset/<name>/mcp` — this is LiteLLM-native routing, NOT nginx.
    The paths do NOT follow the key allowlists (a master key on
@@ -34,14 +38,15 @@ Toolsets have two layers, and since 2026-09-27 they deliberately diverge
 
 | Toolset | Secret | Sees |
 |---|---|---|
-| hass | `litellm_hass_key` | 10 servers (194 tools) — the 9 below + `dagu` |
-| home | `litellm_home_key` | 9 servers (191 tools) + all models |
-| remote | `litellm_remote_key` | 9 servers (191 tools) + all models |
+| hass | `litellm_hass_key` | 10 servers (200 tools) — the 9 below + `dagu` |
+| home | `litellm_home_key` | 9 servers (197 tools) + all models |
+| remote | `litellm_remote_key` | 9 servers (197 tools) + all models |
 
 The 9 shared servers: homeassistant, ha_native, victoriametrics,
 chrome_devtools, searxng, context7, memory, github, docstore. Counts are what
-the keys actually serve on `/mcp`; the toolset rows hold ~7 stale entries
-more (constant gap, harmless).
+the keys actually serve on `/mcp` (measured 2026-10-01 via initialize +
+tools/list per key); the toolset rows hold 7 stale entries more (207/204,
+constant gap, harmless).
 
 opencode on the HA box wires this via ha_opencode ≥ 3.1.0
 (`mcp_litellm_url`, key env `LITELLM_HASS_KEY`); distributed configs live in
@@ -170,9 +175,10 @@ to load it: an mtime `touch` triggers nothing (no inotify path reaches
 the proxy through the docker/union-fs boundary; verified 2026-09-26). Do
 NOT register it via POST `/v1/mcp/server`: the
 API row and the config-synced row collide (symptom: tool listing POSTs to
-the hub root with no auth) — config.yaml is the single source. Toolset
+the hub root with no auth) — config.yaml is the single source. Key
 allowlists are updated by NAME via `/key/update`
-(`object_permission.mcp_servers`).
+(`object_permission.mcp_servers`), but the toolset rows are what gate
+`/mcp` (see the toolsets section).
 
 Tools: `memory_search(query, tag, limit)` — ranked matches with ~160-char
 snippets, never full values; `memory_tags()` — tag vocabulary digest;

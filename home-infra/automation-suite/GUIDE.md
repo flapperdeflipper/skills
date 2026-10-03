@@ -29,9 +29,14 @@ Node-RED was removed on 2026-09-29 (it only logged GitHub events).
   loads them within 2 min. Don't edit DAGs in the UI.
 - Pin to a host with `worker_selector`; use `max_active_runs: 1` for
   deploys; write idempotent steps (fetch → compare → apply).
-- Logic lives in `workflows/scripts/<dag>/<step>.sh`; the step is one line
-  and lists the scripts in `dependencies` (CI checks it). No `schedule:`:
-  every DAG is event-triggered (webhook route, HA automation, MCP) or manual.
+- A step is its command, inline in the YAML, up to about five lines — it
+  must stay readable in the Dagu UI. Longer logic lives once in
+  `jobs/<name>/` in the repo and steps run it from the synced worker
+  checkout (`/srv/automation-suite/jobs/...`). `workflows/scripts/` +
+  `dependencies` shipping stays for commit-pinned deploy scripts.
+- Schedules: coarse daily ones are fine for maintenance jobs with no event
+  to react to (mirror/backup syncs, e.g. `git-mirror-sync`); never
+  sub-daily timers, never a timer where a webhook/event trigger exists.
 - ha, hb and hc keep a read-only checkout at `/srv/automation-suite`
   (`sync-suite-checkout`, when CI passed on `main`).
 - Step processes don't get the worker container's environment. Read

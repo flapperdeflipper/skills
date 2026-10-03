@@ -189,11 +189,14 @@ the Python `litellm_mcp` package on :4001.
 
 Discipline (AGENTS.local.md carries the policy): markdown owns durable
 knowledge; memory holds small volatile facts only — one fact per key, the
-key names the fact, tags required, documented-elsewhere → nowhere. The
-`memory-nudge.js` opencode plugin (auto-loaded from `plugin/`) runs
-`memory_search` on each session's first substantive message and appends a
-one-part pointer (`[memory nudge] N possibly relevant memories…`). Nudge
-auth: `litellm_hass_key` via hasecret, `LITELLM_INTERNAL_URL` overridable.
+key names the fact, tags required, documented-elsewhere → nowhere. Agents
+self-nudge: call `memory_search`/`memory_tags` at the start of substantial
+tasks. The `memory-nudge.js` plugin that automated this was removed
+2026-10-03 — do not resurrect it. Its injected part lacked
+id/sessionID/messageID, failing the message-storage schema and killing
+every session's first message (2026-09-25 → 2026-10-03); schema-fixed, it
+still glued `[memory nudge] …` text into user prompts (user verdict:
+counterproductive).
 
 Debugging notes: `/healthz` on the hub shows per-server state (a `failed`
 memory server usually means `memory_api_key` didn't resolve). Redis

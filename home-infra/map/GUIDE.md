@@ -56,9 +56,10 @@ port had no auth; the browser now lives inside mcp-hub.)
   snippets) + `memory_tags` (vocabulary digest) fix the recall failure that
   ended the 2026-09-23 retirement (write-mostly archive; report and store
   backup: `/share/scratchpad/opencode/2026-09-23-memory-value-analysis/`).
-  The `memory-nudge.js` opencode plugin appends a once-per-session pointer
-  part on the first user message. Markdown still owns durable knowledge;
-  memory holds volatile facts only.
+  Recall is pull-based: agents call `memory_search` themselves (the
+  `memory-nudge.js` auto-nudge plugin was removed 2026-10-03 — it broke
+  every session's first message; do not resurrect). Markdown still owns
+  durable knowledge; memory holds volatile facts only.
 - **hasecret** — `/homeassistant/bin/hasecret`, the only way to touch
   `/homeassistant/secrets.yaml` (see the secrets skill).
 - **OpenChamber** — browser UI for OpenCode, pinned and Ingress-patched in the
